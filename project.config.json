@@ -1,0 +1,23 @@
+{
+  "cloudfunctionRoot": "cloudfunc/",
+  "appid": "wx7c69772b2b6dfc6a",
+  "projectname": "star-animation",
+  "compileType": "miniprogram",
+  "libVersion": "3.6.6",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "condition": {},
+  "setting": {
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}

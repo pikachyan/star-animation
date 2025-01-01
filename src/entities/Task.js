@@ -1,0 +1,19 @@
+export default class task{
+  constructor(score,
+              task_type,
+              task_info,
+              task_name,
+              task_grade,
+              create_time,
+              //启用状态：true
+              active_type=true
+  ){
+    this.task_grade=task_grade
+    this.task_info=task_info
+    this.task_name=task_name
+    this.score=score
+    this.task_type=task_type
+    this.create_time=create_time
+    this.active_type=active_type
+  }
+}

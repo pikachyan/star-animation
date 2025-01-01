@@ -13,6 +13,15 @@
  */
 
 /* 颜色变量 */
+@import 'uview-ui/theme.scss';
+
+
+$background-components-z-index:-1;
+// 基本页面Z轴
+$based-page-z-index:30;
+// 用于剧情的浮窗的Z轴值
+$cus-popup-z-index:50;
+
 
 /* 行为相关颜色 */
 $uni-color-primary: #007aff;

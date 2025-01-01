@@ -1,11 +1,19 @@
 <template>
 	<view class="content">
-      <cus-tabbar></cus-tabbar>
+    <dynamic-background></dynamic-background>
+    <top-placeholder></top-placeholder>
+    <cus-tabbar></cus-tabbar>
+    <user-box></user-box>
 	</view>
 </template>
 
 <script>
-	export default {
+	import TopPlaceholder from "@/components/top-placeholder.vue";
+  import DynamicBackground from "@/components/dynamic-background.vue";
+  import UserBox from "@/components/user-box.vue";
+
+  export default {
+    components: {UserBox, DynamicBackground, TopPlaceholder},
 		data() {
 			return {
 				title: 'Hello'
@@ -20,11 +28,12 @@
 	}
 </script>
 
-<style>
+<style lang="scss" scoped>
 	.content {
 		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
+    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
 	}
 </style>
