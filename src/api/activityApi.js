@@ -1,12 +1,12 @@
 const db = wx.cloud.database()
 
-module.exports= {
-    createTask:createTask,
-    updateTask:updateTask,
-    deleteTask:deleteTask,
-    getTaskList:getTaskList,
-    getTaskDetail:getTaskDetail,
-    getOwnMission:getOwnMission
+export {
+    createTask,
+    updateTask,
+    deleteTask,
+    getTaskList,
+    getTaskDetail,
+    getOwnMission
 }
 // 获取自己未完成的任务
 function getOwnMission(userid){

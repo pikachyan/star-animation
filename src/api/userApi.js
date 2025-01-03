@@ -1,20 +1,22 @@
 import User from 'src/entities/User'
 import dayjs from "dayjs"
 const db = wx.cloud.database()
-
-module.exports={
-    getUserInfo:getUserInfo,
-    createUser:createUser,
-    updateUser:updateUser,
-    deleteUser:deleteUser,
-    resetUserInfo:resetUserInfo,
-    updatePermission:updatePermission,
-    getAdmList:getAdmList
+const _=db.command
+export {
+    getUserInfo,
+    createUser,
+    updateUser,
+    deleteUser,
+    resetUserInfo,
+    updatePermission,
+    getAdmList
 
 }
 // 获取管理员列表
-function getAdmList(query,total=0){
-    return  db.collection('user').skip(total).where(query).get()
+function getAdmList(total=0){
+    return  db.collection('user').skip(total).where({
+        permission:_.neq(4),
+    }).get()
 }
 
 // 升级用户权限

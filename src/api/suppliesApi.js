@@ -1,9 +1,9 @@
 const db=wx.cloud.database()
 const _=db.command
-module.exports={
-  getSuppliesList:getSuppliesList,
-  addSuppliers:addSuppliers,
-  changeSupplierStatus:changeSupplierStatus,
+export {
+  getSuppliesList,
+  addSuppliers,
+  changeSupplierStatus,
 }
 // 用户--获得礼物
 function getGift(){

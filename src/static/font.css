@@ -1,0 +1,7 @@
+@font-face{
+    font-family: DingTalk-JinBuTi;
+    src:url('https://6669-find-star-0gi8dl41091136d1-1316449395.tcb.qcloud.la/DingTalk-JinBuTi.ttf?sign=38b736662924261e9a6c59284168fcdf&t=1735578761')
+}
+view,text,input,textarea,div,page,body{
+    font-family: DingTalk-JinBuTi;
+}

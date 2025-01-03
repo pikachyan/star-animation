@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App'
+import '@/static/font.css'
 import CusTabbar from "@/components/cus-tabbar/cus-tabbar.vue";
 Vue.config.productionTip = false
 Vue.component('cus-tabbar',CusTabbar)

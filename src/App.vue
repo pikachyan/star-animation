@@ -31,11 +31,5 @@
 /* 注意要写在第一行，同时给style标签加入lang="scss"属性 */
 @import "uview-ui/index.scss";
 @import "static/iconfont/iconfont.css";
-@font-face{
-  font-family: DingTalk-JinBuTi;
-  src:url('https://6669-find-star-0gi8dl41091136d1-1316449395.tcb.qcloud.la/DingTalk-JinBuTi.ttf?sign=38b736662924261e9a6c59284168fcdf&t=1735578761')
-}
-view,text,input,textarea,div,page,body{
-  font-family: DingTalk-JinBuTi;
-}
+
 </style>
