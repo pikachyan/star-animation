@@ -1,29 +1,14 @@
 <template>
   <view>
-    <u-divider text="游客管理"></u-divider>
-    <u-grid
-        :border="false"
-        col="2"
-    >
-      <u-grid-item>
-        <u-icon
-            :customStyle="{paddingTop:20+'rpx'}"
-            name="scan"
-            :size="52"
-        ></u-icon>
-        <text class="grid-text">奖励快速验证</text>
-      </u-grid-item>
-    </u-grid>
+
     <template >
-      <u-divider text="基础功能"></u-divider>
       <u-grid
-          :border="false"
-          col="2"
+          col="1"
           @click="click"
       >
         <u-grid-item  v-for="(item,index) in menuList" :key="index">
           <u-icon
-              :customStyle="{paddingTop:20+'rpx'}"
+              :customStyle="{paddingTop:40+'rpx'}"
               :name="item.icon"
               :size="52"
           ></u-icon>
@@ -31,7 +16,18 @@
         </u-grid-item>
       </u-grid>
     </template>
-
+    <u-grid
+        col="1"
+    >
+      <u-grid-item>
+        <u-icon
+            :customStyle="{paddingTop:40+'rpx'}"
+            name="scan"
+            :size="52"
+        ></u-icon>
+        <text class="grid-text">奖励快速验证</text>
+      </u-grid-item>
+    </u-grid>
   </view>
 </template>
 

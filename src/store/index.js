@@ -21,6 +21,6 @@ export default new Vuex.Store({
     actions:{
          async createUser(commit,data){
 
-        }
+        } 
     }
 })

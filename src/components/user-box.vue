@@ -3,7 +3,7 @@
     :show="showPopup"
     @close="onClose"
     @open="onOpen"
-    :round="10"
+    :round="18"
     mode="center"
     :safeAreaInsetBottom="false"
   >
@@ -21,17 +21,19 @@
 
           <view class="right">
             <view>
-              <u-text text="无敌天线娘" size="18px"></u-text>
+              <u-text text="无敌天线娘" lines="1" size="22px"></u-text>
+            </view>
+            <view class="bottom">
+              <user-tag :role="1"></user-tag>
+              <view class="iconfont icon-icon-test" style="font-size: 25px;color: #333333"></view>
+              <view class="iconfont icon-erweima" style="font-size: 25px;color: #333333"></view>
             </view>
           </view>
         </view>
-        <view class="bottom">
-          <view class="iconfont icon-icon-test" style="font-size: 25px;color: #333333"></view>
-          <view class="iconfont icon-erweima" style="font-size: 25px;color: #333333"></view>
-        </view>
+
         <u-cell-group :border="false" :customStyle="cellStyle">
-          <u-cell clickable icon="setting-fill" title="个人信息"></u-cell>
-          <u-cell  clickable :border="false" icon="integral-fill" title="星浔管理仓"></u-cell>
+          <u-cell @click="toPage(1)" clickable icon="setting-fill" title="个人信息"></u-cell>
+          <u-cell @click="toPage(2)" clickable :border="false" icon="integral-fill" title="星浔后台"></u-cell>
         </u-cell-group>
       </template>
       <!--  未登录  -->
@@ -45,9 +47,10 @@
 
 <script>
 import {mapState} from "vuex";
+import UserTag from "@/components/user-tag.vue";
 
 export default {
-  components: {},
+  components: {UserTag},
   created() {
 
   },
@@ -58,6 +61,9 @@ export default {
   watch: {},
   computed: {
     ...mapState(['isLogin']),
+    role(){
+      return 1
+    },
     cellStyle(){
       return{
         'border-radius':'16px',
@@ -79,6 +85,13 @@ export default {
     },
     onOpen(){
       this.showPopup = true
+    },
+    toPage(i){
+      uni.navigateTo({
+        url:i==1?
+            '':
+            '/pages/admin/index'
+      })
     }
   },
 
@@ -98,7 +111,7 @@ export default {
   margin-bottom: 10px;
   .left{
     margin-right: 5px;
-    transform: translateY(-40%);
+    transform: translateY(-1%);
     border-radius: 70px;
     box-shadow: 0 0 10px 0 #e2e2e2
   }
@@ -106,12 +119,13 @@ export default {
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     padding-right: 10px;
   }
 }
 .bottom{
   width: 100%;
   display: flex;
-
 }
+
 </style>

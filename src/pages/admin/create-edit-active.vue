@@ -18,27 +18,34 @@
             <u-input :value="endTimeStr" disabled disabled-color="#fff"></u-input>
           </view>
         </u-form-item>
-        <u-form-item label="立即生效(提交后推送到所有在线设备)">
+        <u-form-item label="解锁每一段故事所需分数">
+          <u-input v-model="unlockStoryValue" placeholder="例：1,2,3,4,5··· 英文逗号隔开"></u-input>
+        </u-form-item>
+        <u-form-item label="配置立即生效">
           <u-switch v-model="effectActive"></u-switch>
         </u-form-item>
+
         <u-divider text="礼品配置"></u-divider>
-        <view style="display: flex">
+        <view style="display: flex;justify-content: flex-end;margin-bottom: 10px">
+          <view>
+            <u-button @click="addGiftItem" type="primary" text="添加" size="small"></u-button>
+          </view>
+        </view>
+        <view v-if="giftsList.length>0" style="display: flex">
           <u-text text="礼品类型" align="left"></u-text>
-          <u-text text="解锁分数" align="right"></u-text>
+          <u-text text="解锁分数" align="left"></u-text>
         </view>
-        <view style="display: flex;margin-bottom: 10px">
-          <u-input></u-input>
+        <view v-for="(item,index) in giftsList" :key="index" style="display: flex;margin-bottom: 10px">
+          <u-input v-model="item.giftType"></u-input>
           <view style="width: 15px"></view>
-          <u-number-box min="1"></u-number-box>
-        </view>
-        <view style="display: flex;margin-bottom: 10px">
-          <u-input></u-input>
-          <view style="width: 15px"></view>
-          <u-number-box min="1"></u-number-box>
+          <u-number-box v-model="item.score" min="1"></u-number-box>
+          <view style="margin-left: 5px;display: flex;align-items: center">
+            <u-button @click="removeGiftItem(index)" size="small" type="error" icon="trash" text="移除"></u-button>
+          </view>
         </view>
       </u-form>
     <view style="padding: 10px">
-      <u-button type="primary" text="提交" shape="circle"></u-button>
+      <u-button @click="subMitActivity" type="primary" text="提交" shape="circle"></u-button>
     </view>
     <view style="height: 50px"></view>
     <u-datetime-picker
@@ -57,11 +64,10 @@
 
 <script>
 import {mapGetters, mapActions, mapMutations} from 'vuex';
-import UInput from "../../components/uview-ui/components/u--input/u--input.vue";
+import {createActivity} from "@/api/activityApi";
 
 
 export default {
-  components: {UInput},
   mixins: [],
   onLoad(ctx) {
     this.isEdit=ctx.isEdit
@@ -88,8 +94,8 @@ export default {
       endTimeStr: '',
       currentDate: -1,
       effectActive: false,
-      giftsList: []
-
+      giftsList: [],
+      unlockStoryValue:''
     }
   },
 
@@ -108,7 +114,47 @@ export default {
     openDate(i) {
       this.showDate = true
       this.currentDate = i
+    },
+    addGiftItem(){
+      this.giftsList.push({
+        giftType:'',
+        score:1
+      })
+    },
+    removeGiftItem(id){
+      this.giftsList.splice(id,1)
+    },
+    subMitActivity(){
+      if(this.isEdit){
 
+      }else{
+        createActivity({
+          unlockStoryArr:this.unlockStoryValue.trim().split(',').map(item=>parseInt(item)),
+          activityName:this.activity_name,
+          startTime:this.startTime,
+          endTime:this.endTime,
+          effectActive:this.effectActive,
+          giftsList:this.giftsList
+        }).then(res=>{
+          console.log(res)
+          if(res.errMsg.includes('add:ok')){
+            uni.showToast({
+              mask:true,
+              title:'提交成功，返回上页',
+              duration:2000
+            })
+            setTimeout(()=>{
+              uni.navigateBack({})
+            },1000)
+
+          }else{
+            uni.showToast({
+              title:'提交异常',
+              icon:'error'
+            })
+          }
+        })
+      }
     }
   },
 

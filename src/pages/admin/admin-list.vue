@@ -13,12 +13,21 @@
           v-for="(item,index) in list"
           :key="index"
           size="large"
-          :title="item.name"
+
           :label="item._id"
           @click="removeAdm(item._id)"
       >
         <template  v-slot:icon>
             <u-image radius="8" width="40px" :src="item.avatarImg" height="40px"></u-image>
+        </template>
+        <template v-slot:title>
+          <view style="display: flex">
+            <user-tag :role="item.permission"></user-tag>
+            <u-text :text="item.name"></u-text>
+          </view>
+        </template>
+        <template  v-slot:right-icon>
+
         </template>
       </u-cell>
     </u-cell-group>
@@ -28,9 +37,10 @@
 <script>
 import {mapGetters, mapActions, mapMutations} from 'vuex';
 import {getAdmList, updatePermission} from "../../api/userApi";
+import UserTag from "@/components/user-tag.vue";
 
 export default {
-  components: {},
+  components: {UserTag},
   mixins: [],
   created() {
     this.getList()
