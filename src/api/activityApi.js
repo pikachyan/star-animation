@@ -8,6 +8,10 @@ export {
     getTaskDetail,
     getOwnMission
 }
+function createActivity(data){
+
+}
+
 // 获取自己未完成的任务
 function getOwnMission(userid){
     return db.collection('user-mission-list_2025')

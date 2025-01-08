@@ -33,6 +33,12 @@
 			"style": {
 				"navigationBarTitleText": "管理员列表"
 			}
+		},
+		{
+			"path": "pages/admin/create-edit-active",
+			"style": {
+				"navigationBarTitleText": ""
+			}
 		}
 	],
 	"globalStyle": {
