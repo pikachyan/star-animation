@@ -133,6 +133,9 @@ export default {
   },
 
   methods: {
+    getActivity(){
+
+    },
     getTask(i){
       getTaskList().then(res=>{
         console.log(res)

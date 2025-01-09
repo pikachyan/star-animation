@@ -13,7 +13,8 @@ export default new Vuex.Store({
         // 用户信息
         userInfo:{
 
-        }
+        },
+        activityList:[]
     },
     mutations: {
 
@@ -21,6 +22,6 @@ export default new Vuex.Store({
     actions:{
          async createUser(commit,data){
 
-        } 
-    }
+        },
+    },
 })

@@ -1,6 +1,8 @@
 const db = wx.cloud.database()
-
+const _=db.command
 export {
+    getActivityInfo,
+    removeActivity,
     checkEffectActivity,
     getActivityList,
     createActivity,
@@ -18,19 +20,41 @@ function createActivity(data){
     })
 }
 
+function getActivityInfo(id){
+    return db.collection('activity').doc(id).get()
+}
+
+// 更新一个活动配置
 function updateActivity(id,data){
     return db.collection('activity').doc(id).update({
         data: data
     })
 }
-// 切换启用状态，关闭其他配置的启用状态
+// 切换某个活动配置的启用状态，并关闭其他配置的启用状态
 function checkEffectActivity(id){
-
+    db.collection('activity') .where({
+        _id:_.neq(id)
+    }).update({
+        data:{
+            effectActive:false,
+        }
+    })
+    db.collection('activity')
+        .where({
+            _id:_.eq(id)
+        }).update({
+        data:{
+            effectActive:true,
+        }
+    })
 }
 
 // 获取活动配置列表
 function getActivityList(){
     return db.collection('activity').get()
+}
+function removeActivity(id){
+    return db.collection('activity').doc(id).remove()
 }
 
 // 获取自己未完成的任务
