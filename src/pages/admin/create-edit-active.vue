@@ -6,7 +6,7 @@
       >
         <u-divider text="基础配置"></u-divider>
         <u-form-item label="活动名称">
-          <u-input v-model="activity_name" clearable></u-input>
+          <u-input v-model="activityName" clearable></u-input>
         </u-form-item>
         <u-form-item label="开始时间">
           <view @click="openDate(1)">
@@ -64,16 +64,29 @@
 
 <script>
 import {mapGetters, mapActions, mapMutations} from 'vuex';
-import {createActivity} from "@/api/activityApi";
+import {createActivity,checkEffectActivity, getActivityInfo} from "@/api/activityApi";
 
 
 export default {
   mixins: [],
   onLoad(ctx) {
-    this.isEdit=ctx.isEdit
+    this.info_id=ctx.info_id
     uni.setNavigationBarTitle({
-      title:this.isEdit?'修改活动配置':'新建活动配置'
+      title:this.info_id?'修改活动配置':'新建活动配置'
     })
+    if(ctx.info_id){
+      getActivityInfo(ctx.info_id).then(res=>{
+        console.log(res)
+        this.activityName=res.data.activityName
+        this.unlockStoryValue=res.data.unlockStoryArr.join(',')
+        this.startTimeStr=this.$u.timeFormat(res.data.startTime, 'yyyy年mm月dd日 hh时MM分')
+        this.startTime=res.data.startTime
+        this.endTime=res.data.endTime
+        this.endTimeStr=this.$u.timeFormat(res.data.endTime, 'yyyy年mm月dd日 hh时MM分')
+        this.giftsList=res.data.giftsList
+        this.effectActive=res.data.effectActive
+      })
+    }
   },
   mounted() {
 
@@ -85,9 +98,9 @@ export default {
   data() {
     return {
       showGiftEditDialog:false,
-      isEdit:false,
+      info_id:false,
       showDate: false,
-      activity_name: '',
+      activityName: '',
       startTime: 0,
       startTimeStr: '',
       endTime: 0,
@@ -125,12 +138,12 @@ export default {
       this.giftsList.splice(id,1)
     },
     subMitActivity(){
-      if(this.isEdit){
+      if(this.info_id){
 
       }else{
         createActivity({
           unlockStoryArr:this.unlockStoryValue.trim().split(',').map(item=>parseInt(item)),
-          activityName:this.activity_name,
+          activityName:this.activityName,
           startTime:this.startTime,
           endTime:this.endTime,
           effectActive:this.effectActive,
@@ -143,8 +156,11 @@ export default {
               title:'提交成功，返回上页',
               duration:2000
             })
+            if(this.effectActive){
+              checkEffectActivity(res._id)
+            }
             setTimeout(()=>{
-              uni.navigateBack({})
+              uni.navigateBack()
             },1000)
 
           }else{
