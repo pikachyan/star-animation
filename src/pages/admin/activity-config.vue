@@ -128,7 +128,7 @@ export default {
       },
       editType:false,
       taskList: [],
-      rateList:['N','R','SR','SSR'],
+      rateList:['简单','普通','困难','超难'],
     }
   },
 

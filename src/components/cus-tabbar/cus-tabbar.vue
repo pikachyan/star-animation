@@ -1,17 +1,14 @@
 <template>
   <view class="tabbar-content">
-    <view @click="switchPage(0)" class="tabbar-content-item">
-      <u-icon labelSize="10px" width="30px" height="30px" label-pos="bottom" :name="pageIndex==0?'/static/icons/main-act.png':'/static/icons/main.png'"></u-icon>
+    <view class="bkg">
+      <image mode="widthFix" src="@/static/background.svg" :style="{width: '100vw',height: bkgHeight}" :show-menu-by-longpress="false"></image>
     </view>
-    <view class="tabbar-content-item">
-      <view @click="switchPage(1)" class="circle-icon" :class="pageIndex==1?'circle-inactive':'circle-deactive'">
-        <u-icon labelSize="10px" width="30px" height="30px"  label-pos="bottom" :name="pageIndex==1?'/static/icons/call-act.png':'/static/icons/call.png'"></u-icon>
-      </view>
-<!--      <text style="margin-bottom: 5px">主会场</text>-->
+    <view @click="switchPage(index)" class="tabbar-content-item active-icon" v-for="(item,index) in list"  :key="index">
+      <image v-if="index==pageIndex" src="@/static/icons/menu-selected-icon.png" style="width: 50px;height: 50px"></image>
+      <text class="title" :style="index===3?'font-size:16px':''" :class="{'title-sele':index==pageIndex}" style="z-index: 5">{{item}}</text>
     </view>
-    <view @click="switchPage(2)" class="tabbar-content-item">
-      <u-icon labelSize="10px" width="30px" height="30px"  label-pos="bottom" :name="pageIndex==2?'/static/icons/news-act.png':'/static/icons/news.png'"></u-icon>
-    </view>
+<!-- 底部补色   -->
+    <view style="z-index:-1;width:100vw;position: absolute;left: 0;bottom: 0;height: 60rpx;background: #f0f0f0"></view>
   </view>
 </template>
 
@@ -21,7 +18,7 @@ export default {
   components: {},
   mixins: [],
   created() {
-
+    this.bkgHeight=(uni.getWindowInfo().screenHeight/uni.getWindowInfo().screenWidth)*uni.getWindowInfo().pixelRatio*100+'px'
   },
   mounted() {
 
@@ -34,7 +31,8 @@ export default {
   },
   data() {
     return {
-
+      list:['任务','积分','故事','联系我们'],
+      bkgHeight:0,
     }
   },
 
@@ -51,43 +49,47 @@ export default {
 <style lang='scss' scoped>
 
 .tabbar-content{
+  //background: #f0f0f0;
   display: flex;
   position: fixed;
-  width: 70vw;
-  height: 55px;
-  border-radius: 16px;
-  background: #fff;
-  box-shadow: 0 0 19px 1px #dfdfdf;
-  bottom: calc(5px + constant(safe-area-inset-bottom)) ;
-  bottom: calc(5px + env(safe-area-inset-bottom)) ;
+  width: 100vw;
+  //height: 105px;
+  bottom: 0;
+  padding-bottom: constant(safe-area-inset-bottom) ;
+  padding-bottom: env(safe-area-inset-bottom) ;
   left:0;
   right:0;
   margin:0 auto;
   &-item{
+    z-index: 4;
+    height: 100px;
     flex:1;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    .title{
+      white-space: nowrap;
+      position: absolute;
+      font-size: 19px;
+      left:50%;
+      transform: translateX(-50%);
+      font-family: alm;
+      word-break: normal;
+      &-sele{
+        color: #009fe7;
+        text-shadow: 0px 0px 2px rgba(255, 255, 255, 1);
+      }
+    }
+    .active-icon{
+
+    }
   }
-  .circle-icon{
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50px;
-    width: 50px;
-    height: 50px;
-  }
-  .circle-inactive{
-    margin-bottom: 50px;
-    width: 60px;
-    box-shadow: 0 0 19px 1px #dfdfdf;
-    background: #4cd964;
-    height: 60px;
-    transition: all ease-in-out 0.3s;
-  }
-  .circle-deactive{
-    transition: all ease-in-out 0.3s;
+  .bkg{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width:100%;
   }
 }
 </style>

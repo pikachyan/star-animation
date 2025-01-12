@@ -1,8 +1,7 @@
 module.exports =
-
     {
         "v": "5.12.1",
-        "fr": 60,
+        "fr": 12,
         "ip": 0,
         "op": 25,
         "w": 1080,
@@ -33,7 +32,8 @@ module.exports =
                 "s": {"a": 0, "k": [100, 100, 100], "ix": 6, "l": 2}
             },
             "ao": 0,
-            "shapes": [{
+            "shapes": [
+                {
                 "ty": "gr",
                 "it": [{
                     "ind": 0,

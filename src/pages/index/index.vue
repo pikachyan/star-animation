@@ -2,9 +2,7 @@
 	<view class="content">
     <top-placeholder></top-placeholder>
 
-
-    <canvas id="canvas" type="2d" style="height: 100vh; width: 100vw;background:rgba(0,0,0,0);display: inline-block; "></canvas>
-
+<!--    <lottie-animation :animation-data="GotPoints"></lottie-animation>-->
 
     <dynamic-background></dynamic-background>
     <cus-tabbar></cus-tabbar>
@@ -16,33 +14,23 @@
 	import TopPlaceholder from "@/components/top-placeholder.vue";
   import DynamicBackground from "@/components/dynamic-background.vue";
   import UserBox from "@/components/user-box.vue";
-  import lottie from "lottie-miniprogram";
-  import GotPoints from '@/static/animation/GotPoints.js';
+  import LottieAnimation from "@/components/lottie-animation/lottie-animation.vue";
 
+  import GotPoints from '@/components/lottie-animation/ani/GotPoints.js';
   export default {
-    components: {UserBox, DynamicBackground, TopPlaceholder},
+    components: {LottieAnimation, UserBox, DynamicBackground, TopPlaceholder},
 		data() {
 			return {
-				title: 'Hello'
+				title: 'Hello',
+        GotPoints:GotPoints,
+
 			}
 		},
 		onLoad() {
 
 		},
     onReady() {
-      uni.createSelectorQuery().select('#canvas').node(res => {
-        const canvas = res.node
-        const context = canvas.getContext('2d')
-        lottie.setup(canvas)
-        lottie.loadAnimation({
-          renderer:'svg',
-          animationData:GotPoints,
-          rendererSettings: {
-            context,
-          },
-          autoplay: true,
-        })
-      }).exec()
+
     },
 		methods: {
 

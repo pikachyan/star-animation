@@ -1,9 +1,12 @@
 <template>
-  <view class="background-content">
-    <view
-        class="item fade"
-        :style="getBackgroundStyle"
-    ></view>
+  <view class="background-content"   :class="'move-' + pageIndex">
+    <u-image src="https://6669-find-star-0gi8dl41091136d1-1316449395.tcb.qcloud.la/bkg.png?sign=abe787a572d85cea701f038efc6cb39c&t=1736701645"
+             :show-menu-by-longpress="false"
+             height="120vh"
+             mode="heightFix"
+             bgColor="#3e3088"
+             duration="5000"
+    ></u-image>
   </view>
 </template>
 
@@ -12,21 +15,15 @@ import { mapState } from 'vuex';
 export default {
   data() {
     return {
-      currentBackground: '#4cd964',
-      transitionBackground: '#4cd964',
+
     };
   },
   computed: {
     ...mapState(['pageIndex']),
-    getBackgroundStyle() {
-      return `background: ${this.transitionBackground}; transition: background-color 1s cubic-bezier(0.4, 0.0, 0.2, 1);`;
-    }
+
   },
   watch: {
-    pageIndex(newIndex) {
-      const colors = ['#4cd964', '#cc9f2d', '#b11124'];
-      this.transitionBackground = colors[newIndex];
-    }
+
   }
 }
 </script>
@@ -35,13 +32,27 @@ export default {
 .background-content {
   position: fixed;
   top:0;
-  left: 0;
+  right: 0%;
+  background: #3e3088;
   z-index: $background-components-z-index;
-  height: 100vh;
+  transition:right 500ms cubic-bezier(0.6, 0, 0.12, 0.7); /* 平移动画 */
+  height: 120vh;
   width: 100vw;
-  .item {
-    height: 100%;
-    width: 100%;
-  }
+}
+
+.move-0 {
+  right: 0%;
+}
+
+.move-1 {
+  right: 15%;
+}
+
+.move-2 {
+  right:30%;
+}
+
+.move-3 {
+  right: 40%;
 }
 </style>

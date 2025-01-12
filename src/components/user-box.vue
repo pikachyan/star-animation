@@ -75,7 +75,7 @@ export default {
   props: [],
   data() {
     return {
-      showPopup:true
+      showPopup:false
     }
   },
 
