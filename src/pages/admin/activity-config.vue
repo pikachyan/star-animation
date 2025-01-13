@@ -1,9 +1,20 @@
 <template>
   <view style="padding: 0 10px">
     <u-divider text="活动配置" ></u-divider>
-    <view style="display: flex;justify-content: flex-end">
+    <view style="display: flex;justify-content: flex-end;margin-bottom: 10px">
       <view>
-        <u-button size="small" text="新建活动" type="primary"></u-button>
+        <u-button size="small" @click="toCreateActive" text="新建活动" type="primary"></u-button>
+      </view>
+    </view>
+    <view :key="ac_index" v-for="(ac_item,ac_index) in activityList" class="act-item" :class="ac_item.effectActive?'act-item-active':''">
+      <view class="left" @click="toCreateActive(ac_item._id)">
+        <u-text size="25" :text="ac_item.activityName"></u-text>
+        <u-text size="11" color="#666"
+                :text="`${$u.timeFormat(ac_item.startTime, 'yyyy/mm/dd hh:MM:ss')} ~ ${$u.timeFormat(ac_item.endTime, 'yyyy/mm/dd hh:MM:ss')}`"
+        ></u-text>
+      </view>
+      <view class="right">
+        <u-switch v-model="ac_item.effectActive"  asyncChange @change="asyncChange(ac_item._id)" ></u-switch>
       </view>
     </view>
     <u-divider text="任务表"></u-divider>
@@ -88,11 +99,13 @@
 </template>
 
 <script>
-import {mapGetters, mapActions, mapMutations} from 'vuex';
+import {mapState,mapGetters, mapActions, mapMutations} from 'vuex';
 import {createTask, deleteTask, getTaskList, updateTask} from "@/api/activityApi";
+import USwitch from "../../components/uview-ui/components/u-switch/u-switch.vue";
+import {checkEffectActivity} from "../../api/activityApi";
 
 export default {
-  components: {},
+  components: {USwitch},
   mixins: [],
   created() {
     this.getTask()
@@ -111,11 +124,12 @@ export default {
   },
   watch: {},
   computed: {
-    ...mapGetters([])
+    ...mapState(['activityList'])
   },
   props: [],
   data() {
     return {
+      val:false,
       showTaskEdit:false,
       taskInfo:{
         task_type:'',
@@ -133,9 +147,7 @@ export default {
   },
 
   methods: {
-    getActivity(){
 
-    },
     getTask(i){
       getTaskList().then(res=>{
         console.log(res)
@@ -214,15 +226,47 @@ export default {
         })
       }
 
+    },
+    toCreateActive(id){
+      uni.navigateTo({
+        url:`/pages/admin/create-edit-active${id?'?info_id='+id:''}`
+      })
+    },
+    asyncChange(id){
+      checkEffectActivity(id)
+
     }
-
-
-
   },
+
 
 }
 </script>
 
 <style lang='scss' scoped>
-
+.act-item{
+  display: flex;
+  border-radius: 8px;
+  box-sizing: border-box;
+  padding: 5px;
+  height: 90px;
+  width: 100%;
+  box-shadow: 0 0  7px 0 #a1a1a1;
+  background-color: #c6c6c6;
+  margin-bottom: 10px;
+  transition: background-color  1s ease-in-out;
+  &-active{
+    background-color: #00c5ff;
+  }
+  .left{
+    flex-basis: 75%;
+    display: flex;
+    flex-direction: column;
+  }
+  .right{
+    flex-basis: 25%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
 </style>

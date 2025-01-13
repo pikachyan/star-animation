@@ -47,6 +47,9 @@
     <view style="padding: 10px">
       <u-button @click="subMitActivity" type="primary" text="提交" shape="circle"></u-button>
     </view>
+    <view v-if="info_id" style="padding: 10px">
+      <u-button @click="deleteActivity" type="error" text="移除活动" shape="circle"></u-button>
+    </view>
     <view style="height: 50px"></view>
     <u-datetime-picker
         :show="showDate"
@@ -64,17 +67,18 @@
 
 <script>
 import {mapGetters, mapActions, mapMutations} from 'vuex';
-import {createActivity,checkEffectActivity, getActivityInfo} from "@/api/activityApi";
+import {removeActivity,createActivity,checkEffectActivity, getActivityInfo} from "@/api/activityApi";
+import {updateActivity} from "../../api/activityApi";
 
 
 export default {
   mixins: [],
   onLoad(ctx) {
-    this.info_id=ctx.info_id
     uni.setNavigationBarTitle({
       title:this.info_id?'修改活动配置':'新建活动配置'
     })
-    if(ctx.info_id){
+    if(ctx.info_id&&ctx.info_id!=='undefined'){
+      this.info_id=ctx.info_id
       getActivityInfo(ctx.info_id).then(res=>{
         console.log(res)
         this.activityName=res.data.activityName
@@ -137,9 +141,43 @@ export default {
     removeGiftItem(id){
       this.giftsList.splice(id,1)
     },
+    deleteActivity(){
+      removeActivity(this.info_id).then(res=>{
+        console.log('已删除活动')
+        uni.navigateBack()
+      })
+    },
     subMitActivity(){
-      if(this.info_id){
+      if(this.info_id&&this.info_id!=='undefined'){
+        updateActivity(this.info_id,{
+          unlockStoryArr: this.unlockStoryValue.trim().split(',').map(item => parseInt(item)),
+          activityName: this.activityName,
+          startTime: this.startTime,
+          endTime: this.endTime,
+          effectActive: this.effectActive,
+          giftsList: this.giftsList
+        }).then(res=>{
+          console.log(res)
+          if(res.errMsg.includes('update:ok')){
+            uni.showToast({
+              mask:true,
+              title:'提交成功，返回上页',
+              duration:2000
+            })
+            if(this.effectActive){
+              checkEffectActivity(res._id)
+            }
+            setTimeout(()=>{
+              uni.navigateBack()
+            },1000)
 
+          }else{
+            uni.showToast({
+              title:'提交异常',
+              icon:'error'
+            })
+          }
+        })
       }else{
         createActivity({
           unlockStoryArr:this.unlockStoryValue.trim().split(',').map(item=>parseInt(item)),

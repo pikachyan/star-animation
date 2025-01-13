@@ -40,6 +40,34 @@
       let env=uni.getAccountInfoSync().miniProgram.envVersion
       console.log("----当前运行环境："+env)
       this.globalData.env=env
+
+
+
+
+      const db = wx.cloud.database()
+      //  监听活动配置
+      db.collection('activity').watch({
+        onChange:snapshot=>{
+          console.log('活动配置变化', snapshot)
+          this.$store.commit('updateActivityList',snapshot.docs)
+        },
+        onError: err=> {
+          console.error('活动配置变化监听出错', err)
+          uni.$u.toast('活动配置变化监听出错')
+        }
+      })
+      // 监听用户信息
+      if(uni.getStorageSync('user_id')){
+        db.collection('user').doc(uni.getStorageSync('user_id')).watch({
+          onChange:snapshot=>{
+            console.log('用户信息变化', snapshot)
+
+          },
+          onError: err=> {
+            console.error('用户信息监听出错', err)
+          }
+        })
+      }
 		},
 		onShow: function() {
 			// console.log('App Show')

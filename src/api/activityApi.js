@@ -37,16 +37,25 @@ function checkEffectActivity(id){
     }).update({
         data:{
             effectActive:false,
+        },
+        success:res=>{
+            console.log(res)
+            console.log('切换配置成功，即时生效')
+            db.collection('activity')
+                .where({
+                    _id:_.eq(id)
+                }).update({
+                data:{
+                    effectActive:true,
+                },
+                success:res=>{
+                    console.log(res)
+                    console.log('已经关闭其他配置')
+                }
+            })
         }
     })
-    db.collection('activity')
-        .where({
-            _id:_.eq(id)
-        }).update({
-        data:{
-            effectActive:true,
-        }
-    })
+
 }
 
 // 获取活动配置列表
@@ -56,6 +65,7 @@ function getActivityList(){
 function removeActivity(id){
     return db.collection('activity').doc(id).remove()
 }
+
 
 // 获取自己未完成的任务
 function getOwnMission(userid){
