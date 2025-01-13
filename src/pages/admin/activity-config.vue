@@ -1,14 +1,14 @@
 <template>
   <view style="padding: 0 10px">
-    <u-divider text="活动配置" ></u-divider>
-    <view style="display: flex;justify-content: flex-end;margin-bottom: 10px">
+<!--    <u-divider text="活动配置" ></u-divider>-->
+    <view style="display: flex;justify-content: flex-end;margin: 10px 0">
       <view>
         <u-button size="small" @click="toCreateActive" text="新建活动" type="primary"></u-button>
       </view>
     </view>
     <view :key="ac_index" v-for="(ac_item,ac_index) in activityList" class="act-item" :class="ac_item.effectActive?'act-item-active':''">
       <view class="left" @click="toCreateActive(ac_item._id)">
-        <u-text size="25" :text="ac_item.activityName"></u-text>
+        <u-text :size="ac_item.effectActive?'25':'20'" :color="ac_item.effectActive?'#fff':'#000'" :text="ac_item.activityName"></u-text>
         <u-text size="11" color="#666"
                 :text="`${$u.timeFormat(ac_item.startTime, 'yyyy/mm/dd hh:MM:ss')} ~ ${$u.timeFormat(ac_item.endTime, 'yyyy/mm/dd hh:MM:ss')}`"
         ></u-text>
@@ -101,11 +101,10 @@
 <script>
 import {mapState,mapGetters, mapActions, mapMutations} from 'vuex';
 import {createTask, deleteTask, getTaskList, updateTask} from "@/api/activityApi";
-import USwitch from "../../components/uview-ui/components/u-switch/u-switch.vue";
 import {checkEffectActivity} from "../../api/activityApi";
 
 export default {
-  components: {USwitch},
+  components: {},
   mixins: [],
   created() {
     this.getTask()
@@ -152,7 +151,7 @@ export default {
       getTaskList().then(res=>{
         console.log(res)
         this.taskList=res.data;
-        if(i)uni.$u.toast('已刷新')
+        // if(i)uni.$u.toast('已刷新')
       })
     },
     openDialog(index){
@@ -251,11 +250,11 @@ export default {
   height: 90px;
   width: 100%;
   box-shadow: 0 0  7px 0 #a1a1a1;
-  background-color: #c6c6c6;
+  background-color: #efefef;
   margin-bottom: 10px;
-  transition: background-color  1s ease-in-out;
+  transition: all 1s ease-in-out;
   &-active{
-    background-color: #00c5ff;
+    background-color: #54e66c;
   }
   .left{
     flex-basis: 75%;

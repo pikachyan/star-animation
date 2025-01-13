@@ -75,7 +75,7 @@ export default {
   mixins: [],
   onLoad(ctx) {
     uni.setNavigationBarTitle({
-      title:this.info_id?'修改活动配置':'新建活动配置'
+      title:ctx.info_id&&ctx.info_id!=='undefined'?'修改活动配置':'新建活动配置'
     })
     if(ctx.info_id&&ctx.info_id!=='undefined'){
       this.info_id=ctx.info_id

@@ -32,6 +32,7 @@ function updateActivity(id,data){
 }
 // 切换某个活动配置的启用状态，并关闭其他配置的启用状态
 function checkEffectActivity(id){
+    uni.showLoading()
     db.collection('activity') .where({
         _id:_.neq(id)
     }).update({
@@ -49,10 +50,16 @@ function checkEffectActivity(id){
                     effectActive:true,
                 },
                 success:res=>{
+                    uni.hideLoading()
                     console.log(res)
                     console.log('已经关闭其他配置')
                 }
             })
+        },
+        error:res=>{
+            uni.showLoading()
+        },fail:res=>{
+            uni.showLoading()
         }
     })
 
