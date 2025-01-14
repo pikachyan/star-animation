@@ -8,10 +8,15 @@
     </view>
     <view :key="ac_index" v-for="(ac_item,ac_index) in activityList" class="act-item" :class="ac_item.effectActive?'act-item-active':''">
       <view class="left" @click="toCreateActive(ac_item._id)">
-        <u-text :size="ac_item.effectActive?'25':'20'" :color="ac_item.effectActive?'#fff':'#000'" :text="ac_item.activityName"></u-text>
-        <u-text size="11" color="#666"
-                :text="`${$u.timeFormat(ac_item.startTime, 'yyyy/mm/dd hh:MM:ss')} ~ ${$u.timeFormat(ac_item.endTime, 'yyyy/mm/dd hh:MM:ss')}`"
-        ></u-text>
+        <text
+            style="line-height: 60px"
+          :style="{fontSize:ac_item.effectActive?'25px':'20px',color:ac_item.effectActive?'#fff':'#000'}"
+        >
+          {{ac_item.activityName}}
+        </text>
+        <text style="font-size: 11px;color:#666">
+          {{`${$u.timeFormat(ac_item.startTime, 'yyyy/mm/dd hh:MM:ss')} ~ ${$u.timeFormat(ac_item.endTime, 'yyyy/mm/dd hh:MM:ss')}` }}
+        </text>
       </view>
       <view class="right">
         <u-switch v-model="ac_item.effectActive"  asyncChange @change="asyncChange(ac_item._id)" ></u-switch>

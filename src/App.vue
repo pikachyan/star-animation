@@ -1,5 +1,11 @@
 <script>
-	export default {
+	import {mapState} from "vuex";
+  wx.cloud.init({
+    env:'find-star-0gi8dl41091136d1',
+    traceUser: true,
+  });
+  const db = wx.cloud.database()
+  export default {
     globalData:{
       // 图片路径前缀
       BASE_URL:"",
@@ -7,11 +13,7 @@
       env:null
     },
 		onLaunch() {
-			// console.log('App Launch')
-      wx.cloud.init({
-        env:'find-star-0gi8dl41091136d1',
-        traceUser: true,
-      });
+
       uni.loadFontFace({
         global:true,
         family:'DingTalk-JinBuTi',
@@ -34,9 +36,6 @@
           console.log(err)
         }
       })
-      this.globalData.safeArea=uni.getWindowInfo().safeArea
-      this.globalData.statusBarHeight=uni.getWindowInfo().statusBarHeight
-      this.globalData.version='V1.1.0'
       let env=uni.getAccountInfoSync().miniProgram.envVersion
       console.log("----当前运行环境："+env)
       this.globalData.env=env
@@ -44,7 +43,7 @@
 
 
 
-      const db = wx.cloud.database()
+
       //  监听活动配置
       db.collection('activity').watch({
         onChange:snapshot=>{
@@ -53,7 +52,6 @@
         },
         onError: err=> {
           console.error('活动配置变化监听出错', err)
-          uni.$u.toast('活动配置变化监听出错')
         }
       })
       // 监听用户信息
@@ -61,20 +59,44 @@
         db.collection('user').doc(uni.getStorageSync('user_id')).watch({
           onChange:snapshot=>{
             console.log('用户信息变化', snapshot)
-
+            this.$store.commit('updateUser',snapshot.docs[0])
           },
           onError: err=> {
             console.error('用户信息监听出错', err)
           }
         })
       }
+      //  监听任务表
+      db.collection('task').watch({
+        onChange:snapshot=>{
+          console.log('任务表变化', snapshot)
+          this.$store.commit('updateTaskList',snapshot.docs)
+        },
+        onError: err=> {
+          console.error('任务表变化监听出错', err)
+        }
+      })
+
 		},
-		onShow: function() {
-			// console.log('App Show')
-		},
-		onHide: function() {
-			// console.log('App Hide')
-		}
+    watch:{
+      isLogin(){
+        if(this.isLogin){
+          // 获取任务表
+          db.collection('user-activity-2025').where({
+            user_id:db.command.eq(this.user_id),
+            // 任务完成情况 1未完成2已完成
+            complete_type:db.command.eq(1)
+          }).get().then(res=>{
+            console.log(res)
+          })
+        }else{
+          this.$store.commit('logOut')
+        }
+      }
+    },
+    computed:{
+      ...mapState(['isLogin','user_id'])
+    }
 	}
 </script>
 <style lang="scss">

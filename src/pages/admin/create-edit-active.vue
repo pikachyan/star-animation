@@ -142,10 +142,20 @@ export default {
       this.giftsList.splice(id,1)
     },
     deleteActivity(){
-      removeActivity(this.info_id).then(res=>{
-        console.log('已删除活动')
-        uni.navigateBack()
+      uni.showModal({
+        title:'提示',
+        content:"确定移除该活动？",
+        success:i=>{
+          if(i.confirm){
+            removeActivity(this.info_id).then(res=>{
+              uni.$u.toast('已删除活动')
+              console.log('已删除活动')
+              uni.navigateBack()
+            })
+          }
+        }
       })
+
     },
     subMitActivity(){
       if(this.info_id&&this.info_id!=='undefined'){

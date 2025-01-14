@@ -2,9 +2,31 @@
 	<view class="content">
     <top-placeholder></top-placeholder>
 
-<!--    <lottie-animation :animation-data="GotPoints"></lottie-animation>-->
+    <swiper @change="pageChange" :current="pageIndex" style="height: 100%">
+      <swiper-item  >
+        <scroll-view scroll-y class="page-item">
+          <task></task>
+        </scroll-view>
+      </swiper-item>
+      <swiper-item  >
+        <scroll-view scroll-y class="page-item">
 
-    <dynamic-background></dynamic-background>
+        </scroll-view>
+      </swiper-item>
+      <swiper-item  >
+        <scroll-view scroll-y class="page-item">
+
+        </scroll-view>
+      </swiper-item>
+      <swiper-item  >
+        <scroll-view scroll-y class="page-item">
+
+        </scroll-view>
+      </swiper-item>
+    </swiper>
+
+
+<!--    <dynamic-background></dynamic-background>-->
     <cus-tabbar></cus-tabbar>
     <user-box></user-box>
 	</view>
@@ -14,17 +36,16 @@
 	import TopPlaceholder from "@/components/top-placeholder.vue";
   import DynamicBackground from "@/components/dynamic-background.vue";
   import UserBox from "@/components/user-box.vue";
-  import LottieAnimation from "@/components/lottie-animation/lottie-animation.vue";
+  import Task from "./task.vue";
+  import {mapState} from "vuex";
 
-  import GotPoints from '@/components/lottie-animation/ani/GotPoints.js';
   export default {
-    components: {LottieAnimation, UserBox, DynamicBackground, TopPlaceholder},
+    components: {Task, UserBox, DynamicBackground, TopPlaceholder},
+    computed:{
+      ...mapState(['pageIndex'])
+    },
 		data() {
-			return {
-				title: 'Hello',
-        GotPoints:GotPoints,
-
-			}
+			return {}
 		},
 		onLoad() {
 
@@ -33,7 +54,10 @@
 
     },
 		methods: {
-
+      pageChange(e){
+        console.log(e)
+        this.$store.state.pageIndex=e.detail.current
+      }
 		}
 	}
 </script>
@@ -46,4 +70,8 @@
     height: 100vh;
     box-sizing: border-box;
 	}
+  .page-item{
+    width: 100vw;
+    height: 100%;
+  }
 </style>

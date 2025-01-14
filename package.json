@@ -67,6 +67,7 @@
     "@dcloudio/uni-quickapp-webview": "^2.0.1-alpha-36920221121001",
     "@dcloudio/uni-stacktracey": "^2.0.1-alpha-36920221121001",
     "@dcloudio/uni-stat": "^2.0.1-alpha-36920221121001",
+    "@uqrcode/js": "^4.0.7",
     "@vue/shared": "^3.0.0",
     "copy-webpack-plugin": "^12.0.2",
     "core-js": "^3.8.3",
@@ -74,6 +75,7 @@
     "flyio": "^0.6.2",
     "lottie-miniprogram": "^1.0.12",
     "lottie-web": "^5.12.2",
+    "uqrcodejs": "^4.0.7",
     "uview-ui": "^2.0.38",
     "vue": ">= 2.6.14 < 2.7",
     "vuex": "^3.2.0"
