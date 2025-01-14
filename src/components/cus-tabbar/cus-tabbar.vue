@@ -38,8 +38,10 @@ export default {
 
   methods: {
     switchPage(pageIndex) {
-      if(pageIndex!==this.pageIndex)
-      this.$store.state.pageIndex=pageIndex;
+      uni.$u.throttle(()=>{
+        if(pageIndex!==this.pageIndex)
+          this.$store.state.pageIndex=pageIndex;
+      },  500, true)
     }
   },
 

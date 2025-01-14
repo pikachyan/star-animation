@@ -73,9 +73,6 @@
     "core-js": "^3.8.3",
     "dayjs": "^1.11.13",
     "flyio": "^0.6.2",
-    "lottie-miniprogram": "^1.0.12",
-    "lottie-web": "^5.12.2",
-    "uqrcodejs": "^4.0.7",
     "uview-ui": "^2.0.38",
     "vue": ">= 2.6.14 < 2.7",
     "vuex": "^3.2.0"
