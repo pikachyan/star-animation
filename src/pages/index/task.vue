@@ -1,6 +1,19 @@
 <template>
-  <view>
-    <u-button @click="openDialog"></u-button>
+  <view style="display: flex;flex-direction: column;padding: 0 15px">
+    <view style="height: 150rpx"></view>
+    <view style="height: 400px">
+      <view class="item" v-for="(item,index) in missionList" :key="index">
+
+      </view>
+    </view>
+
+
+    <text style="line-height:25px;text-align: center;font-family: alm;color: #fff;font-size: 16px"> 怎么玩？</text>
+    <text style="line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 12px">
+      前往任务对应的区域，寻找对应的NPC进行任务
+      在任务完成后点击对应项目，NPC确认后扫码即可完成任务
+      任务完成获取积分，完成4个任务即可刷新一批任务
+    </text>
     <u-popup
       :show="showCodeDialog"
       mode="center"
@@ -21,6 +34,8 @@
 </template>
 
 <script>
+const db=wx.cloud.database();
+const _=db.command;
 import weappQRcode from "@/utils/weapp.qrcode.esm";
 import {mapState} from "vuex";
 export default {
@@ -29,12 +44,25 @@ export default {
 
   },
   mounted() {
-    this.showCodeDialog=true
-    console.log('当前生效的活动配置',this.activeActivityConfig)
 
   },
 
   watch: {
+    activityType(){
+      // 活动开始构建任务表
+      if(this.activityType==='start'&&this.missionList.length===0){
+        console.log(11111)
+          let missionList=this.createMissionList()
+        missionList.forEach(async  (item,index)=>{
+          const res= await db.collection('user-activity-2025').add({
+            data:item
+          })
+          console.log(res)
+        })
+        this.$store.commit('updateMissionList',missionList)
+
+      }
+    },
     showCodeDialog(){
         if(this.showCodeDialog){
           this.$nextTick(()=>{
@@ -64,7 +92,7 @@ export default {
 
   },
   computed: {
-    ...mapState(['activeActivityConfig','isLogin','user_id']),
+    ...mapState(['activityType','taskList','missionList','isLogin','user_id']),
     currentMissionInfo(){
 
     }
@@ -78,6 +106,9 @@ export default {
   },
 
   methods: {
+    initMission(){
+
+    },
     openDialog(index){
       this.selectMissionIndex=index
       this.showCodeDialog=true
@@ -88,12 +119,66 @@ export default {
       setTimeout(()=>{
         this.selectMissionIndex=-1
       },500)
-    }
+    },
+    // 抽取任务类型
+    selectMissionType(){
+      // 基础抽取概率
+      const probabilities ={
+        '简单':0.5,
+        "普通":0.3,
+        "困难":0.15,
+        "超难":0.05
+      }
+      const randomValue = Math.random();
+      let selectedGrade;
+      let cumulativeProbability = 0;
+      for (const grade in probabilities) {
+        cumulativeProbability += probabilities[grade];
+        if (randomValue <= cumulativeProbability) {
+          selectedGrade = grade;
+          break;
+        }
+      }
+      return selectedGrade;
+    },
+    // 构建任务表
+    createMissionList(){
+      let res=[]
+      for(let i =1;i<5;i++){
+        let grade_result=this.selectMissionType()
+        /*筛选该类型的任务*/
+        let resultArr=this.taskList.filter(item=>item.task_grade===grade_result)
+        // console.log(arr)
+        let random=Math.ceil(Math.random()*resultArr.length-1)
+        // console.log(arr[random])
+        res.push({
+          finish_time:null,
+          // 完成状态 1未完成 2已完成
+          complete_type:1,
+          npc_id:null,
+          score:resultArr[random].score,
+          task_id:resultArr[random]._id,
+          task_info:resultArr[random],
+          user_id:this.user_id,
+          ser_info:this.userInfo,
+          create_time:new Date().getTime()
+        })
+      }
+      return res
+    },
   },
 
 }
 </script>
 
 <style lang='scss' scoped>
-
+.item{
+  background: #ddd;
+  border-radius: 12px;
+  box-sizing: border-box;
+  padding: 5px;
+  width: 100%;
+  height: 80px;
+  margin-bottom: 10px;
+}
 </style>

@@ -65,6 +65,20 @@
             console.error('用户信息监听出错', err)
           }
         })
+        // 获取任务表
+        db.collection('user-activity-2025').where({
+          // 任务完成情况 1未完成2已完成
+          complete_type:db.command.eq(1),
+          user_id: db.command.eq(uni.getStorageSync('user_id')),
+        }).watch({
+          onChange:snapshot=>{
+            console.log('用户任务表变化', snapshot)
+            this.$store.commit('updateMissionList',snapshot.docs)
+          },
+          onError: err=> {
+            console.error('用户任务表变化监听出错', err)
+          }
+        })
       }
       //  监听任务表
       db.collection('task').watch({
@@ -76,23 +90,11 @@
           console.error('任务表变化监听出错', err)
         }
       })
+      console.log('当前生效的活动配置',this.activeActivityConfig)
 
 		},
     watch:{
-      isLogin(){
-        if(this.isLogin){
-          // 获取任务表
-          db.collection('user-activity-2025').where({
-            user_id:db.command.eq(this.user_id),
-            // 任务完成情况 1未完成2已完成
-            complete_type:db.command.eq(1)
-          }).get().then(res=>{
-            console.log(res)
-          })
-        }else{
-          this.$store.commit('logOut')
-        }
-      }
+
     },
     computed:{
       ...mapState(['isLogin','user_id'])

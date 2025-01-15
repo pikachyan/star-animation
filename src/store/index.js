@@ -5,6 +5,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
+        activityType:'waiting',
         isLogin:false,
         // 当前页面的ID
         pageIndex: 0,
@@ -37,6 +38,9 @@ export default new Vuex.Store({
         updateOneMission(state,data){
           let {replaceIndex,obj}=data
           state.missionList[replaceIndex]=obj
+        },
+        updateMissionList(state,data){
+            state.missionList=data
         },
         updateUser(state,data){
             uni.setStorageSync('user_id',data._id)

@@ -48,22 +48,48 @@
   export default {
     components: {Score, Task, UserBox, DynamicBackground, TopPlaceholder},
     computed:{
-      ...mapState(['pageIndex'])
+      ...mapState(['taskList','pageIndex','activeActivityConfig'])
     },
 		data() {
-			return {}
+			return {
+        currentTime: new Date().getTime(),
+      }
 		},
 		onLoad() {
 
 		},
+    watch:{
+      // 以定时器监听活动开始结束
+      currentTime(n,o){
+        let {startTime,endTime} = this.activeActivityConfig
+        if(o>=startTime){
+          // 活动开始
+          this.$store.state.activityType='start'
+        }else if(o>=endTime){
+          //   活动结束
+          this.$store.state.activityType='end'
+        }else {
+          // 活动前
+          this.$store.state.activityType='wait'
+        }
+      }
+    },
     onReady() {
       console.log(this.$store.state)
+      // 注册时间监听器
+      this.interval = setInterval(() => {
+        this.currentTime = new Date().getTime();
+      }, 1000);
+    },
+    beforeDestroy() {
+      clearInterval(this.interval);
     },
 		methods: {
       pageChange(e){
         console.log(e)
         this.$store.state.pageIndex=e.detail.current
-      }
+      },
+
 		}
 	}
 </script>
