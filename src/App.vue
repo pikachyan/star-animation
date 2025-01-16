@@ -5,6 +5,7 @@
     traceUser: true,
   });
   const db = wx.cloud.database()
+  const _=db.command
   export default {
     globalData:{
       // 图片路径前缀
@@ -14,6 +15,16 @@
     },
 		onLaunch() {
 
+      if(uni.getStorageSync('user_id')){
+        db.collection('user').doc(uni.getStorageSync('user_id'))
+            .get().then(res=>{
+          console.log(res)
+          if(res.errMsg.includes('get:ok')){
+            this.$store.commit('updateUser',res.data)
+            console.log('登陆成功')
+          }
+        })
+      }
       uni.loadFontFace({
         global:true,
         family:'DingTalk-JinBuTi',
@@ -41,9 +52,6 @@
       this.globalData.env=env
 
 
-
-
-
       //  监听活动配置
       db.collection('activity').watch({
         onChange:snapshot=>{
@@ -54,32 +62,7 @@
           console.error('活动配置变化监听出错', err)
         }
       })
-      // 监听用户信息
-      if(uni.getStorageSync('user_id')){
-        db.collection('user').doc(uni.getStorageSync('user_id')).watch({
-          onChange:snapshot=>{
-            console.log('用户信息变化', snapshot)
-            this.$store.commit('updateUser',snapshot.docs[0])
-          },
-          onError: err=> {
-            console.error('用户信息监听出错', err)
-          }
-        })
-        // 获取任务表
-        db.collection('user-activity-2025').where({
-          // 任务完成情况 1未完成2已完成
-          complete_type:db.command.eq(1),
-          user_id: db.command.eq(uni.getStorageSync('user_id')),
-        }).watch({
-          onChange:snapshot=>{
-            console.log('用户任务表变化', snapshot)
-            this.$store.commit('updateMissionList',snapshot.docs)
-          },
-          onError: err=> {
-            console.error('用户任务表变化监听出错', err)
-          }
-        })
-      }
+
       //  监听任务表
       db.collection('task').watch({
         onChange:snapshot=>{
@@ -94,7 +77,66 @@
 
 		},
     watch:{
+      isLogin(){
+        let userInfoHandler,userActivityFileHandler
+        if(this.isLogin){
+          // 监听用户信息
+          userInfoHandler = db.collection('user')
+              .doc(uni.getStorageSync('user_id'))
+              .watch({
+            onChange:snapshot=>{
+              console.log('用户信息变化', snapshot)
+              this.$store.commit('updateUser',snapshot.docs[0])
+            },
+            onError: err=> {
+              console.error('用户信息监听出错', err)
+            }
+          })
+          //   检查用户的活动配置 如无则创建
+          db.collection('user-activity-2025').where({
+            user_id: _.eq(this.user_id)
+          }).get().then(res=>{
+            console.log(res)
+            if(res.data.length===0){
+              let params={
+                user_id:this.user_id,
+                // 是否已领取礼物
+                getGiftType:false,
+                // 有无刷新次数
+                hasMissionRefresh:false,
+                // 完成任务的总分
+                score_total:0,
+              }
+              console.log('没有配置')
+              db.collection('user-activity-2025').add({
+                data:params
+              }).then(res=>{
+                console.log(res)
+                if(res.errMsg.includes('add:ok')){
+                  this.$store.commit('updateUserActivityFile',params)
+                }
+              })
+            }else{
+              userActivityFileHandler=db.collection('user-activity-2025').where({
+                user_id:_.eq(this.user_id)
+              }).watch({
+                onChange:snapshot=>{
+                  console.log('用户活动档案信息变化', snapshot)
+                  this.$store.commit('updateUserActivityFile',snapshot.docs[0])
+                },
+                onError: err=> {
+                  console.error('用户活动档案信息监听出错', err)
+                }
+              })
+            }
+          })
+        }else{
+          userActivityFileHandler.close()
+          userInfoHandler.close()
+          this.$store.commit('logOut')
+        }
 
+      }
     },
     computed:{
       ...mapState(['isLogin','user_id'])

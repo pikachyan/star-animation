@@ -59,7 +59,7 @@
       <scroll-view scroll-y style="max-height:80vh;width: 80vw;padding: 20px">
         <u-form  :model="taskInfo" label-position="top" label-width="auto">
           <u-form-item  label="任务名">
-            <u-input v-model="taskInfo.task_name" clearable></u-input>
+            <u-textarea confirm-type="return" v-model="taskInfo.task_name" ></u-textarea>
           </u-form-item>
           <u-form-item  label="任务等级（影响抽取概率）">
             <u-radio-group
@@ -107,9 +107,10 @@
 import {mapState,mapGetters, mapActions, mapMutations} from 'vuex';
 import {createTask, deleteTask, getTaskList, updateTask} from "@/api/activityApi";
 import {checkEffectActivity} from "../../api/activityApi";
+import UTextarea from "../../components/uview-ui/components/u--textarea/u--textarea.vue";
 
 export default {
-  components: {},
+  components: {UTextarea},
   mixins: [],
   created() {
     this.getTask()

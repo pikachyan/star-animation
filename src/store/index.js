@@ -15,6 +15,7 @@ export default new Vuex.Store({
         userInfo:{
 
         },
+        userActivityFile:null,
         activityList:[],
         activeActivityConfig:null,
         // 用户抽取的任务表
@@ -25,6 +26,9 @@ export default new Vuex.Store({
         activity_total_score:0,
     },
     mutations: {
+        updateUserActivityFile(state,data){
+          state.userActivityFile=data
+        },
         logOut(state){
             state.isLogin=false
             state.user_id=''

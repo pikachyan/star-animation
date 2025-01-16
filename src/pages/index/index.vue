@@ -44,7 +44,8 @@
   import {mapState} from "vuex";
   import Task from "./task.vue";
   import Score from "@/pages/index/score.vue";
-
+  const db=wx.cloud.database()
+  const _=db.command
   export default {
     components: {Score, Task, UserBox, DynamicBackground, TopPlaceholder},
     computed:{
@@ -65,9 +66,13 @@
         if(o>=startTime){
           // 活动开始
           this.$store.state.activityType='start'
+
+
         }else if(o>=endTime){
           //   活动结束
           this.$store.state.activityType='end'
+          //   活动结束后移除第一次刷新的缓存
+          uni.removeStorageSync('first_fresh')
         }else {
           // 活动前
           this.$store.state.activityType='wait'
@@ -89,7 +94,6 @@
         console.log(e)
         this.$store.state.pageIndex=e.detail.current
       },
-
 		}
 	}
 </script>
