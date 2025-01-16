@@ -107,10 +107,8 @@
 import {mapState,mapGetters, mapActions, mapMutations} from 'vuex';
 import {createTask, deleteTask, getTaskList, updateTask} from "@/api/activityApi";
 import {checkEffectActivity} from "../../api/activityApi";
-import UTextarea from "../../components/uview-ui/components/u--textarea/u--textarea.vue";
-
 export default {
-  components: {UTextarea},
+  components: {},
   mixins: [],
   created() {
     this.getTask()

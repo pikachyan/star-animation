@@ -67,45 +67,64 @@ const db=wx.cloud.database();
 const _=db.command;
 import weappQRcode from "@/utils/weapp.qrcode.esm";
 import {mapState} from "vuex";
-import UButton from "../../components/uview-ui/components/u-button/u-button.vue";
 export default {
-  components: {UButton, UserGradeTag},
+  components: { UserGradeTag},
   created() {
 
   },
   mounted() {
-    this.$nextTick(()=>{
-      // 获取任务表
-      db.collection('user-mission-2025').where({
-        // 任务完成情况 1未完成2已完成3已结算
-        complete_type:db.command.eq(1).or(db.command.eq(2)),
-        user_id: db.command.eq('80e3bed0656b9158021d95e52513c5fc'),
-      }).watch({
-        onChange:snapshot=>{
-          console.log('用户任务表变化', snapshot)
-          this.$store.commit('updateMissionList',snapshot.docs)
-          this.closeDialog()
-        },
-        onError: err=> {
-          console.error('用户任务表变化监听出错', err)
-        }
-      })
+    this.$nextTick( async ()=>{
+
     })
   },
 
   watch: {
-    activityType(){
+    pageIndex(){
+      this.closeDialog()
+    },
+    async activityType(){
+
       // 活动开始构建任务表
-      if(this.activityType==='start'&&this.missionList.length===0){
-        console.log(11111)
+      if(this.activityType==='start'){
+        // 检查是否生成了任务
+        const checkMissionListRes = await db.collection('user-mission-2025').where({
+          user_id:db.command.eq(this.user_id),
+          // 未完成数量不为零即有任务表
+          complete_type:db.command.eq(1),
+        }).get()
+        console.log(checkMissionListRes)
+        if(checkMissionListRes.data.length===0){
+          console.log('构建任务表')
           let missionList=this.createMissionList()
-        missionList.forEach(async  (item,index)=>{
-          const res= await db.collection('user-mission-2025').add({
-            data:item
-          })
-          console.log(res)
-        })
-        this.$store.commit('updateMissionList',missionList)
+          for (const item of missionList) {
+            const res= await db.collection('user-mission-2025').add({
+              data:item
+            })
+            console.log(res)
+          }
+          this.$store.commit('updateMissionList',missionList)
+        }else{
+          // 获取任务表
+          this.userMissionHandler= db.collection('user-mission-2025').where({
+                // 任务完成情况 1未完成2已完成3已结算
+                complete_type:db.command.eq(1).or(db.command.eq(2)),
+                user_id: db.command.eq(this.user_id),
+              }).watch({
+                onChange:snapshot=>{
+                  console.log('用户任务表变化', snapshot)
+                  if(snapshot.docChanges[0].dataType==='update'&&snapshot.docChanges[0].doc.complete_type===2){
+                    uni.$u.toast('等级+'+snapshot.docChanges[0].doc.score)
+                  }
+                  //
+                  this.$store.commit('updateMissionList',snapshot.docs)
+                  // this.closeDialog()
+                },
+                onError: err=> {
+                  console.error('用户任务表变化监听出错', err)
+                }
+              })
+        }
+
 
       }
     },
@@ -138,8 +157,11 @@ export default {
     },
 
   },
+  beforeDestroy() {
+    this.userMissionHandler.close()
+  },
   computed: {
-    ...mapState(['userActivityFile','activityType','taskList','missionList','isLogin','user_id']),
+    ...mapState(['pageIndex','userActivityFile','activityType','taskList','missionList','isLogin','user_id']),
     currentMissionInfo(){
       return this.missionList[this.selectMissionIndex]
     }
@@ -147,6 +169,7 @@ export default {
   props: [],
   data() {
     return {
+      userMissionHandler:null,
       showCodeDialog:false,
       selectMissionIndex:-1,
     }
@@ -194,30 +217,49 @@ export default {
       return selectedGrade;
     },
     // 构建任务表
-    createMissionList(){
-      let res=[]
-      for(let i =1;i<5;i++){
-        let grade_result=this.selectMissionType()
-        /*筛选该类型的任务*/
-        let resultArr=this.taskList.filter(item=>item.task_grade===grade_result)
-        // console.log(arr)
-        let random=Math.ceil(Math.random()*resultArr.length-1)
-        // console.log(arr[random])
+    createMissionList() {
+      let res = []; // 存储最终任务列表
+
+      for (let i = 1; i < 5; i++) {
+        let grade_result = this.selectMissionType(); // 获取任务类型
+
+        // 筛选符合任务类型的任务
+        let resultArr = this.taskList.filter(item => item.task_grade === grade_result);
+
+        // 如果筛选出的任务数量不足以保证唯一性，抛出错误或警告
+        if (resultArr.length === 0) {
+          throw new Error(`任务类型为 ${grade_result} 的任务不足，无法生成唯一任务`);
+        }
+
+        // 排除已选中的任务
+        resultArr = resultArr.filter(item => !res.some(existing => existing.task_id === item._id));
+
+        // 如果经过排除后没有可用任务，抛出错误
+        if (resultArr.length === 0) {
+          throw new Error(`任务类型为 ${grade_result} 的剩余任务已用尽，无法生成唯一任务`);
+        }
+
+        // 随机选择一个任务
+        let random = Math.floor(Math.random() * resultArr.length);
+        let task = resultArr[random];
+
+        // 添加到结果列表
         res.push({
-          finish_time:null,
-          // 完成状态 1未完成 2已完成 3已放弃
-          complete_type:1,
-          npc_id:null,
-          score:resultArr[random].score,
-          task_id:resultArr[random]._id,
-          task_info:resultArr[random],
-          user_id:this.user_id,
-          ser_info:this.userInfo,
-          create_time:new Date().getTime()
-        })
+          finish_time: null, // 完成时间
+          complete_type: 1, // 完成状态：1未完成 2已完成 3已放弃
+          npc_id: null, // NPC ID
+          score: task.score, // 任务分数
+          task_id: task._id, // 任务 ID
+          task_info: task, // 任务详细信息
+          user_id: this.user_id, // 用户 ID
+          ser_info: this.userInfo, // 用户信息
+          create_time: new Date().getTime(), // 创建时间戳
+        });
       }
-      return res
+
+      return res;
     },
+
     refreshMission(){
       uni.setStorageSync('first_refresh',false)
       // 建立新任务表
@@ -247,7 +289,7 @@ export default {
   background: #fff;
   border-radius: 15px;
   box-sizing: border-box;
-  padding: 5px;
+  padding: 5px 10px;
   width: 100%;
   height: 100px;
   margin-bottom: 10px;
