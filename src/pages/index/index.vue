@@ -9,22 +9,22 @@
         :current="pageIndex"
         style="height: 100vh">
       <swiper-item  >
-        <scroll-view  scroll-y class="page-item">
+        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
           <task ></task>
         </scroll-view>
       </swiper-item>
       <swiper-item  >
-        <scroll-view  scroll-y class="page-item">
+        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
           <score ></score>
         </scroll-view>
       </swiper-item>
       <swiper-item  >
-        <scroll-view  scroll-y class="page-item">
+        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
 
         </scroll-view>
       </swiper-item>
       <swiper-item  >
-        <scroll-view  scroll-y class="page-item">
+        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
 
         </scroll-view>
       </swiper-item>
@@ -32,7 +32,7 @@
 
 
     <dynamic-background></dynamic-background>
-    <cus-tabbar></cus-tabbar>
+    <cus-tabbar id="custabbar"></cus-tabbar>
     <user-box></user-box>
 	</view>
 </template>
@@ -54,6 +54,7 @@
 		data() {
 			return {
         currentTime: new Date().getTime(),
+        scrollHeight:0,
       }
 		},
 		onLoad() {
@@ -85,6 +86,9 @@
       this.interval = setInterval(() => {
         this.currentTime = new Date().getTime();
       }, 1000);
+      this.scrollHeight=uni.getWindowInfo().screenHeight
+          -(uni.getMenuButtonBoundingClientRect().bottom+5)
+          -100
     },
     beforeDestroy() {
       clearInterval(this.interval);
@@ -108,6 +112,5 @@
 	}
   .page-item{
     width: 100vw;
-    height: 100%;
   }
 </style>

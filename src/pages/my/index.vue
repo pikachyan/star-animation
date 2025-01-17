@@ -1,40 +1,49 @@
 <template>
-  <view>
+ <view>
 
-  </view>
+ </view>
 </template>
 
 <script>
-import {mapGetters, mapActions, mapMutations} from 'vuex';
-
+import {mapGetters,mapActions,mapMutations} from 'vuex';
 export default {
-  components: {},
-  mixins: [],
+  components:{
+
+  },
+  mixins:[],
   created() {
 
   },
-  mounted() {
+  mounted(){
 
   },
-  onLoad(ctx) {
+  onLoad(ctx){
 
   },
-  onReady() {
+  onReady(){
 
   },
-  onShow() {
+  onShow(){
 
   },
-  watch: {},
-  computed: {
-    ...mapGetters(['app_token', 'isLogin'])
+  watch:{
+
   },
-  props: [],
+  computed:{
+
+  },
+  props:[
+
+  ],
   data() {
-    return {}
+    return {
+
+    }
   },
 
-  methods: {},
+  methods: {
+
+  },
 
 }
 </script>

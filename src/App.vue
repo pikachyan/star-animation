@@ -101,9 +101,9 @@
               let params={
                 user_id:this.user_id,
                 // 是否已领取礼物
-                getGiftType:false,
+                getGiftType:0,
                 // 有无刷新次数
-                hasMissionRefresh:false,
+                hasMissionRefresh:0,
                 // 完成任务的总分
                 score_total:0,
               }

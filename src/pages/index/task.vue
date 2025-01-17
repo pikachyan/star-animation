@@ -3,13 +3,13 @@
     <view style="height: 60rpx"></view>
     <view style="height: 440px">
       <view class="item" @click="openDialog(index)" v-for="(item,index) in missionList" :key="index">
-        <text style="margin-right:5px;font-family: alm;font-size: 45px" :style="{color:gradeColor(item.task_info.task_grade)}">
+        <text style="margin-right:5px;font-family: alm;font-size: 35px" :style="{color:gradeColor(item.task_info.task_grade)}">
           {{item.task_info.task_grade}}
         </text>
        <text class="mission-info">{{item.task_info.task_name}}</text>
-<!--        <view style="width:50px;">-->
-<!--          <text style="font-family: alm" v-if="item.complete_type==2">已完成</text>-->
-<!--        </view>-->
+        <view style="width:50px;">
+          <view class="complete" v-if="item.complete_type==2">已经完成</view>
+        </view>
       </view>
     </view>
     <view style="align-items:center;margin-bottom:10px;display: flex;justify-content: space-between">
@@ -21,19 +21,20 @@
         <u-button
             @click="refreshMission"
             throttleTime="2000"
-            :disabled="!userActivityFile.hasMissionRefresh"
+            :disabled="userActivityFile.hasMissionRefresh==0"
             text="刷新"
             size="mini"
-            :type="!userActivityFile.hasMissionRefresh?'info':'warning'"
+            :type="userActivityFile.hasMissionRefresh==0?'info':'warning'"
         ></u-button>
       </view>
     </view>
-    <text style="line-height:25px;text-align: center;font-family: alm;color: #fff;font-size: 16px"> 怎么玩？</text>
-    <text style="line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 12px">
+    <text style="margin-top:10px;line-height:25px;text-align: center;font-family: alm;color: #fff;font-size: 16px"> 怎么玩？</text>
+    <text style="line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 14px">
       前往任务对应的区域，寻找对应的NPC进行任务
       在任务完成后点击对应项目，NPC确认后扫码即可完成任务
       任务完成获取积分，完成4个任务即可刷新一批任务
     </text>
+    <view style="height: 50px"></view>
     <u-popup
       :show="showCodeDialog"
       mode="center"
@@ -104,19 +105,32 @@ export default {
           }
           this.$store.commit('updateMissionList',missionList)
         }else{
-          // 获取任务表
+          // 获取任务表与处理结算
           this.userMissionHandler= db.collection('user-mission-2025').where({
                 // 任务完成情况 1未完成2已完成3已结算
                 complete_type:db.command.eq(1).or(db.command.eq(2)),
                 user_id: db.command.eq(this.user_id),
               }).watch({
-                onChange:snapshot=>{
+                onChange:async snapshot => {
                   console.log('用户任务表变化', snapshot)
-                  if(snapshot.docChanges[0].dataType==='update'&&snapshot.docChanges[0].doc.complete_type===2){
-                    uni.$u.toast('等级+'+snapshot.docChanges[0].doc.score)
+                  // 在这里处理任务完成
+                  if (snapshot.docChanges[0].dataType === 'update' && snapshot.docChanges[0].doc.complete_type === 2) {
+                    uni.$u.toast('等级+' + snapshot.docChanges[0].doc.score)
+                    if (!uni.getStorageSync('first_fresh'))
+                      uni.setStorageSync('first_fresh', true)
+                    try {
+                      const refreshUpdateRes = await db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
+                        data:{
+                          hasMissionRefresh:1
+                        }
+                      })
+                      console.log(refreshUpdateRes)
+                    } catch (e) {
+                      console.log('更改可刷新状态出问题'+e)
+                    }
                   }
                   //
-                  this.$store.commit('updateMissionList',snapshot.docs)
+                  this.$store.commit('updateMissionList', snapshot.docs)
                   // this.closeDialog()
                 },
                 onError: err=> {
@@ -181,7 +195,7 @@ export default {
         '简单':'#7ad2ff',
         '普通':'#61e797',
         '困难':'#fd7fb7',
-        '极难':'#ddc64d',
+        '超难':'#ddc64d',
       }[grade]
     },
     openDialog(index){
@@ -260,10 +274,16 @@ export default {
       return res;
     },
 
-    refreshMission(){
-      uni.setStorageSync('first_refresh',false)
+    async refreshMission(){
+      uni.removeStorageSync('first_fresh')
+      const refreshUpdateRes = await db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
+        data:{
+          hasMissionRefresh:0
+        }
+      })
+      console.log(refreshUpdateRes)
       // 建立新任务表
-      const newMissionList=this.createMissionList
+      // const newMissionList=this.createMissionList
 
     }
   },
@@ -274,7 +294,7 @@ export default {
 <style lang='scss' scoped>
 
 .mission-info{
-  text-align: right;
+  text-align: center;
   font-family: alm;
   flex:1;
   font-size: 20px;
@@ -295,5 +315,18 @@ export default {
   margin-bottom: 10px;
   display: flex;
   align-items: center;
+}
+.complete{
+  font-family: alm;
+  background-color: #009fe7;
+  color: #fff;
+  border-radius: 8px;
+  height: 35px;
+  width: 35px;
+  font-size: 17px;
+  text-align: center;
+  white-space: wrap;
+  padding: 3px;
+  box-sizing: content-box;
 }
 </style>
