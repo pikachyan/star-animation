@@ -1,6 +1,6 @@
 <template>
 	<view class="content">
-    <top-placeholder></top-placeholder>
+<!--    <top-placeholder></top-placeholder>-->
 
     <swiper
         easing-function="easeInOutCubic"
@@ -10,22 +10,22 @@
         style="height: 100vh">
       <swiper-item  >
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <task ></task>
+          <task :mgTop="mgTop"></task>
         </scroll-view>
       </swiper-item>
       <swiper-item  >
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <score ></score>
+          <score :mgTop="mgTop"></score>
         </scroll-view>
       </swiper-item>
       <swiper-item  >
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-
+          <story></story>
         </scroll-view>
       </swiper-item>
       <swiper-item  >
-        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-
+        <scroll-view :style="{height:scrollHeight+'px'}" class="page-item">
+          <contact :mgTop="mgTop"></contact>
         </scroll-view>
       </swiper-item>
     </swiper>
@@ -44,10 +44,12 @@
   import {mapState} from "vuex";
   import Task from "./task.vue";
   import Score from "@/pages/index/score.vue";
+  import Contact from "@/pages/index/contact.vue";
+  import Story from "@/pages/index/story.vue";
   const db=wx.cloud.database()
   const _=db.command
   export default {
-    components: {Score, Task, UserBox, DynamicBackground, TopPlaceholder},
+    components: {Story, Contact, Score, Task, UserBox, DynamicBackground, TopPlaceholder},
     computed:{
       ...mapState(['taskList','pageIndex','activeActivityConfig'])
     },
@@ -55,6 +57,7 @@
 			return {
         currentTime: new Date().getTime(),
         scrollHeight:0,
+        mgTop:uni.getMenuButtonBoundingClientRect().top+5+'px',
       }
 		},
 		onLoad() {
@@ -87,7 +90,6 @@
         this.currentTime = new Date().getTime();
       }, 1000);
       this.scrollHeight=uni.getWindowInfo().screenHeight
-          -(uni.getMenuButtonBoundingClientRect().bottom+5)
           -100
     },
     beforeDestroy() {

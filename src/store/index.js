@@ -19,7 +19,12 @@ export default new Vuex.Store({
         activityList:[],
         activeActivityConfig:null,
         // 用户抽取的任务表
-        missionList:[],
+        missionList:[
+            {task_info:{task_name:'',task_grade:''}},
+            {task_info:{task_name:'',task_grade:''}},
+            {task_info:{task_name:'',task_grade:''}},
+            {task_info:{task_name:'',task_grade:''}},
+        ],
         // 活动总任务表
         taskList:[],
         // 活动总分

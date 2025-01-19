@@ -1,21 +1,36 @@
 <template>
-  <view style="display: flex;flex-direction: column;padding: 0 15px">
-    <view style="height: 60rpx"></view>
-    <view style="height: 440px">
-      <view class="item" @click="openDialog(index)" v-for="(item,index) in missionList" :key="index">
-        <text style="margin-right:5px;font-family: alm;font-size: 35px" :style="{color:gradeColor(item.task_info.task_grade)}">
-          {{item.task_info.task_grade}}
-        </text>
-       <text class="mission-info">{{item.task_info.task_name}}</text>
-        <view style="width:50px;">
-          <view class="complete" v-if="item.complete_type==2">已经完成</view>
-        </view>
+  <view style="display: flex;flex-direction: column;padding: 0 15px"
+    :style="{marginTop:mgTop}"
+  >
+    <u-overlay :show="loading" opacity="0"></u-overlay>
+    <text style="line-height:50px;text-align: center;font-family: alm;color: #fff;font-size: 25px"> 任务中心</text>
+    <text style="margin-bottom:20px;line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 14px">
+      点击对应项目查看详情，前往任务对应的区域
+      寻找对应的NPC进行任务，NPC扫码确认即可完成任务
+      任务完成可获取等级，完成4个任务即可刷新一批任务
+    </text>
+    <view style="position: relative;">
+      <view
+          class="item"
+          :class="{'animate':loading,'item_loading':loading}"
+          @click="openDialog(index)" v-for="(item,index) in missionList"
+          :key="index"
+      >
+        <template v-if="!loading">
+          <text style="margin-right:5px;font-family: alm;font-size: 60rpx" :style="{color:gradeColor(item.task_info.task_grade)}">
+            {{item.task_info.task_grade||''}}
+          </text>
+          <text class="mission-info">{{item.task_info.task_name||''}}</text>
+          <view style="width:50px;">
+            <view class="complete" v-if="item.complete_type==2">已经完成</view>
+          </view>
+        </template>
       </view>
     </view>
-    <view style="align-items:center;margin-bottom:10px;display: flex;justify-content: space-between">
+    <view style="padding:0 15px;align-items:center;margin-top:5px;display: flex;justify-content: space-between">
       <text style="font-size:11px;color:#fff;font-family: alm">
-        完成一个任务可获取一次刷新列表的机会
-        但每批任务只可获得一次机会
+        每批任务完成任意一个
+        可获得一次刷新列表的机会（不计数）
       </text>
       <view>
         <u-button
@@ -28,13 +43,7 @@
         ></u-button>
       </view>
     </view>
-    <text style="margin-top:10px;line-height:25px;text-align: center;font-family: alm;color: #fff;font-size: 16px"> 怎么玩？</text>
-    <text style="line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 14px">
-      前往任务对应的区域，寻找对应的NPC进行任务
-      在任务完成后点击对应项目，NPC确认后扫码即可完成任务
-      任务完成获取积分，完成4个任务即可刷新一批任务
-    </text>
-    <view style="height: 50px"></view>
+
     <u-popup
       :show="showCodeDialog"
       mode="center"
@@ -71,12 +80,13 @@ import {mapState} from "vuex";
 export default {
   components: { UserGradeTag},
   created() {
-
+    this.marginTop=uni.getWindowInfo().statusBarHeight
+    setTimeout(()=>{
+      this.loading=false
+    },1000)
   },
   mounted() {
-    this.$nextTick( async ()=>{
 
-    })
   },
 
   watch: {
@@ -180,12 +190,14 @@ export default {
       return this.missionList[this.selectMissionIndex]
     }
   },
-  props: [],
+  props: ['mgTop'],
   data() {
     return {
+      marginTop:0,
       userMissionHandler:null,
       showCodeDialog:false,
       selectMissionIndex:-1,
+      loading:true,
     }
   },
 
@@ -200,8 +212,9 @@ export default {
     },
     openDialog(index){
       this.selectMissionIndex=index
-      this.showCodeDialog=true
-
+      setTimeout(()=>{
+        this.showCodeDialog=true
+      },100)
     },
     closeDialog(){
       this.showCodeDialog=false
@@ -254,8 +267,8 @@ export default {
         }
 
         // 随机选择一个任务
-        let random = Math.floor(Math.random() * resultArr.length);
-        let task = resultArr[random];
+        let randomIndex = Math.floor(Math.random() * resultArr.length);
+        let task = resultArr[randomIndex];
 
         // 添加到结果列表
         res.push({
@@ -287,12 +300,21 @@ export default {
 
     }
   },
-
+  options: {
+    styleIsolation: 'shared'
+  },
 }
 </script>
 
-<style lang='scss' scoped>
-
+<style lang="scss" scoped>
+::v-deep .skeleton--u-skeleton__wrapper__content__rows{
+    width: 100%!important;
+    border-radius: 15px;
+}
+@mixin background {
+  background: linear-gradient(90deg, #F1F2F4 25%, #dddbdb 37%, #F1F2F4 50%);
+  background-size: 400% 100%;
+}
 .mission-info{
   text-align: center;
   font-family: alm;
@@ -305,16 +327,32 @@ export default {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical !important;
 }
+.animate {
+  animation: skeleton 1.8s ease infinite
+}
+
+@keyframes skeleton {
+  0% {
+    background-position: 100% 50%
+  }
+
+  100% {
+    background-position: 0 50%
+  }
+}
 .item{
   background: #fff;
   border-radius: 15px;
   box-sizing: border-box;
   padding: 5px 10px;
   width: 100%;
-  height: 100px;
-  margin-bottom: 10px;
+  height: 160rpx;
+  margin-bottom: 12px;
   display: flex;
   align-items: center;
+  &_loading{
+    @include background;
+  }
 }
 .complete{
   font-family: alm;

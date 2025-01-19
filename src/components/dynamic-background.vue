@@ -45,14 +45,14 @@ export default {
 }
 
 .move-1 {
-  right: 15%;
+  right: 7%;
 }
 
 .move-2 {
-  right:30%;
+  right:15%;
 }
 
 .move-3 {
-  right: 40%;
+  right: 20%;
 }
 </style>
