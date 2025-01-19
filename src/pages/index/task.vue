@@ -81,9 +81,6 @@ export default {
   components: { UserGradeTag},
   created() {
     this.marginTop=uni.getWindowInfo().statusBarHeight
-    setTimeout(()=>{
-      this.loading=false
-    },1000)
   },
   mounted() {
 
@@ -97,6 +94,7 @@ export default {
 
       // 活动开始构建任务表
       if(this.activityType==='start'){
+        this.loading=true
         // 检查是否生成了任务
         const checkMissionListRes = await db.collection('user-mission-2025').where({
           user_id:db.command.eq(this.user_id),
@@ -114,6 +112,7 @@ export default {
             console.log(res)
           }
           this.$store.commit('updateMissionList',missionList)
+          this.loading=false
         }else{
           // 获取任务表与处理结算
           this.userMissionHandler= db.collection('user-mission-2025').where({
@@ -142,6 +141,7 @@ export default {
                   //
                   this.$store.commit('updateMissionList', snapshot.docs)
                   // this.closeDialog()
+                  this.loading=false
                 },
                 onError: err=> {
                   console.error('用户任务表变化监听出错', err)
@@ -245,49 +245,60 @@ export default {
     },
     // 构建任务表
     createMissionList() {
-      let res = []; // 存储最终任务列表
+        let res = [];
+        const maxAttempts = 5; // 每次任务生成的最大尝试次数
 
-      for (let i = 1; i < 5; i++) {
-        let grade_result = this.selectMissionType(); // 获取任务类型
+        for (let i = 1; i < 5; i++) {
+          let generatedTask = null;
+          let attempts = 0;
 
-        // 筛选符合任务类型的任务
-        let resultArr = this.taskList.filter(item => item.task_grade === grade_result);
+          while (!generatedTask && attempts < maxAttempts) {
+            attempts++;
 
-        // 如果筛选出的任务数量不足以保证唯一性，抛出错误或警告
-        if (resultArr.length === 0) {
-          throw new Error(`任务类型为 ${grade_result} 的任务不足，无法生成唯一任务`);
+            let grade_result = this.selectMissionType();
+            /* 筛选该类型的任务 */
+            let resultArr = this.taskList.filter(item => item.task_grade === grade_result);
+
+            if (resultArr.length === 0) {
+              console.warn(`未找到任务类型为 ${grade_result} 的任务，重新尝试`);
+              continue; // 如果筛选结果为空，重新尝试
+            }
+
+            let randomIndex = Math.floor(Math.random() * resultArr.length);
+
+            // 判断生成的任务是否已经存在于列表中
+            if (res.some(task => task.task_id === resultArr[randomIndex]._id)) {
+              console.warn(`任务 ${resultArr[randomIndex]._id} 已存在，重新尝试`);
+              continue; // 如果任务重复，重新尝试
+            }
+
+            // 成功生成任务
+            generatedTask = {
+              finish_time: null,
+              complete_type: 1, // 完成状态 1未完成 2已完成 3已放弃
+              npc_id: null,
+              score: resultArr[randomIndex].score,
+              task_id: resultArr[randomIndex]._id,
+              task_info: resultArr[randomIndex],
+              user_id: this.user_id,
+              ser_info: this.userInfo,
+              create_time: new Date().getTime(),
+            };
+          }
+
+          if (!generatedTask) {
+            console.error(`无法生成任务类型为 ${grade_result} 的任务`);
+            continue; // 如果超过最大尝试次数仍未成功生成，跳过本次任务
+          }
+
+          res.push(generatedTask);
         }
 
-        // 排除已选中的任务
-        resultArr = resultArr.filter(item => !res.some(existing => existing.task_id === item._id));
-
-        // 如果经过排除后没有可用任务，抛出错误
-        if (resultArr.length === 0) {
-          throw new Error(`任务类型为 ${grade_result} 的剩余任务已用尽，无法生成唯一任务`);
-        }
-
-        // 随机选择一个任务
-        let randomIndex = Math.floor(Math.random() * resultArr.length);
-        let task = resultArr[randomIndex];
-
-        // 添加到结果列表
-        res.push({
-          finish_time: null, // 完成时间
-          complete_type: 1, // 完成状态：1未完成 2已完成 3已放弃
-          npc_id: null, // NPC ID
-          score: task.score, // 任务分数
-          task_id: task._id, // 任务 ID
-          task_info: task, // 任务详细信息
-          user_id: this.user_id, // 用户 ID
-          ser_info: this.userInfo, // 用户信息
-          create_time: new Date().getTime(), // 创建时间戳
-        });
-      }
-
-      return res;
+        return res;
     },
 
     async refreshMission(){
+      this.loading=true;
       uni.removeStorageSync('first_fresh')
       const refreshUpdateRes = await db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
         data:{
@@ -295,6 +306,15 @@ export default {
         }
       })
       console.log(refreshUpdateRes)
+      // 修改当前任务表状态，已完成的跳过 未完成的标记为状态3，然后提交，使用云函数操作
+      try{
+
+
+      }catch (e) {
+        uni.$u.toast('变更旧的任务状态出现问题')
+        return
+      }
+
       // 建立新任务表
       // const newMissionList=this.createMissionList
 
