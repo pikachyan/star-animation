@@ -15,16 +15,6 @@
     },
 		onLaunch() {
 
-      if(uni.getStorageSync('user_id')){
-        db.collection('user').doc(uni.getStorageSync('user_id'))
-            .get().then(res=>{
-          console.log(res)
-          if(res.errMsg.includes('get:ok')){
-            this.$store.commit('updateUser',res.data)
-            console.log('登陆成功')
-          }
-        })
-      }
       uni.loadFontFace({
         global:true,
         family:'DingTalk-JinBuTi',

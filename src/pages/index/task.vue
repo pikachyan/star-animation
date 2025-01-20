@@ -93,7 +93,7 @@ export default {
     async activityType(){
 
       // 活动开始构建任务表
-      if(this.activityType==='start'){
+      if(this.activityType==='start'&&this.isLogin){
         this.loading=true
         // 检查是否生成了任务
         const checkMissionListRes = await db.collection('user-mission-2025').where({
