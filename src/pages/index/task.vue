@@ -71,7 +71,7 @@
 </template>
 
 <script>
-import UserGradeTag from "../../components/user-grade-tag.vue";
+import UserGradeTag from "@/components/user-grade-tag.vue";
 
 const db=wx.cloud.database();
 const _=db.command;
@@ -182,6 +182,7 @@ export default {
 
   },
   beforeDestroy() {
+    if(this.userMissionHandler)
     this.userMissionHandler.close()
   },
   computed: {

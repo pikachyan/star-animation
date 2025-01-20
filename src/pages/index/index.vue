@@ -8,19 +8,32 @@
         @change="pageChange"
         :current="pageIndex"
         style="height: 100vh">
-      <swiper-item  >
+      <swiper-item >
+        <image
+            :lazy-load="false"
+            mode="widthFix"
+            style="width:100vw"
+            src="cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中01.png"
+            v-if="activityType==='wait'"></image>
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <task :mgTop="mgTop"></task>
+
+          <task v-if="activityType==='start'||activityType==='end'" :mgTop="mgTop"></task>
+        </scroll-view>
+      </swiper-item>
+      <swiper-item  >
+        <image
+            :lazy-load="false"
+            mode="widthFix"
+            style="width:100vw"
+            src="cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中02.png"
+            v-if="activityType==='wait'"></image>
+        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
+          <story v-if="activityType==='start'||activityType==='end'"></story>
         </scroll-view>
       </swiper-item>
       <swiper-item  >
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
           <score :mgTop="mgTop"></score>
-        </scroll-view>
-      </swiper-item>
-      <swiper-item  >
-        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <story></story>
         </scroll-view>
       </swiper-item>
       <swiper-item  >
@@ -51,7 +64,7 @@
   export default {
     components: {Story, Contact, Score, Task, UserBox, DynamicBackground, TopPlaceholder},
     computed:{
-      ...mapState(['taskList','pageIndex','activeActivityConfig'])
+      ...mapState(['taskList','pageIndex','activeActivityConfig','activityType'])
     },
 		data() {
 			return {
@@ -94,7 +107,7 @@
     },
     onReady() {
       console.log(this.$store.state)
-      // 注册时间监听器
+      //活动时间监听器
       this.interval = setInterval(() => {
         this.currentTime = new Date().getTime();
       }, 1000);
