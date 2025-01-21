@@ -61,8 +61,8 @@
           <canvas type="2d"  id="qrcode" canvas-id="qrcode" style="width: 150px;height:150px;align-self: center;margin:5px 0" />
           <u-text size="12" color="#ddd" text="*请向工作人员出示二维码结算任务" align="center"></u-text>
         </template>
-        <view style="margin:20px 0" v-else>
-          <u-text type="success" align="center" text="你已完成该任务"></u-text>
+        <view style="width: 100%;height:150px;display: flex;align-items: center;justify-content: center" v-else>
+          <u-text size="24px" type="success" align="center" text="你已完成该任务"></u-text>
         </view>
         <u-button @click="closeDialog" shape="circle" text="关闭"></u-button>
       </view>
@@ -76,11 +76,14 @@ import UserGradeTag from "@/components/user-grade-tag.vue";
 const db=wx.cloud.database();
 const _=db.command;
 import weappQRcode from "@/utils/weapp.qrcode.esm";
-import {mapState} from "vuex";
+import {mapGetters, mapState} from "vuex";
 export default {
   components: { UserGradeTag},
   created() {
     this.marginTop=uni.getWindowInfo().statusBarHeight
+    uni.navigateTo({
+      url:'/pages/admin/index'
+    })
   },
   mounted() {
 
@@ -90,32 +93,36 @@ export default {
     pageIndex(){
       this.closeDialog()
     },
-    async activityType(){
-
-      // 活动开始构建任务表
-      if(this.activityType==='start'&&this.isLogin){
-        this.loading=true
-        // 检查是否生成了任务
-        const checkMissionListRes = await db.collection('user-mission-2025').where({
-          user_id:db.command.eq(this.user_id),
-          // 未完成数量不为零即有任务表
-          complete_type:db.command.eq(1),
-        }).get()
-        console.log(checkMissionListRes)
-        if(checkMissionListRes.data.length===0){
-          console.log('构建任务表')
-          let missionList=this.createMissionList()
-          for (const item of missionList) {
-            const res= await db.collection('user-mission-2025').add({
-              data:item
-            })
-            console.log(res)
-          }
-          this.$store.commit('updateMissionList',missionList)
-          this.loading=false
-        }else{
-          // 获取任务表与处理结算
-          this.userMissionHandler= db.collection('user-mission-2025').where({
+    _activityType:{
+      immediate: true,  //刷新加载 立马触发一次handler
+      deep: true,  // 可以深度检测到 obj 对象的属性值的变化
+      handler(o,v){
+        return new Promise(async resolve =>{
+          console.log(o+'111111111111111111111111111111111')
+          // 活动开始构建任务表
+          if(this.getActivityType==='start'&&this.isLogin){
+            this.loading=true
+            // 检查是否生成了任务
+            const checkMissionListRes = await db.collection('user-mission-2025').where({
+              user_id:db.command.eq(this.user_id),
+              // 未完成数量不为零即有任务表
+              complete_type:db.command.eq(1),
+            }).get()
+            console.log(checkMissionListRes)
+            if(checkMissionListRes.data.length===0){
+              console.log('构建任务表')
+              let missionList=this.createMissionList()
+              for (const item of missionList) {
+                const res= await db.collection('user-mission-2025').add({
+                  data:item
+                })
+                console.log(res)
+              }
+              this.$store.commit('updateMissionList',missionList)
+              this.loading=false
+            }else{
+              // 获取任务表与处理结算
+              this.userMissionHandler= db.collection('user-mission-2025').where({
                 // 任务完成情况 1未完成2已完成3已结算
                 complete_type:db.command.eq(1).or(db.command.eq(2)),
                 user_id: db.command.eq(this.user_id),
@@ -147,7 +154,9 @@ export default {
                   console.error('用户任务表变化监听出错', err)
                 }
               })
-        }
+            }
+          }
+        } )
 
 
       }
@@ -186,9 +195,13 @@ export default {
     this.userMissionHandler.close()
   },
   computed: {
+    ...mapGetters(['getActivityType']),
     ...mapState(['pageIndex','userActivityFile','activityType','taskList','missionList','isLogin','user_id']),
     currentMissionInfo(){
       return this.missionList[this.selectMissionIndex]
+    },
+    _activityType(){
+      return this.$store.state.activityType
     }
   },
   props: ['mgTop'],

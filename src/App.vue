@@ -14,12 +14,15 @@
       env:null
     },
 		onLaunch() {
+      let env=uni.getAccountInfoSync().miniProgram.envVersion
+      console.log("----当前运行环境："+env)
+      this.globalData.env=env
 
       uni.loadFontFace({
         global:true,
         family:'DingTalk-JinBuTi',
         source:'url("https://api.ow123.net/statics/garden/DingTalk-JinBuTi.ttf")',
-        success:res=>{
+        success: res=>{
           console.log(res)
         },
         fail:err=>{
@@ -30,18 +33,13 @@
         global:true,
         family:'alm',
         source:'url("https://api.ow123.net/statics/garden/alm.ttf")',
-        success:res=>{
+        success: res=>{
           console.log(res)
         },
         fail:err=>{
           console.log(err)
         }
       })
-      let env=uni.getAccountInfoSync().miniProgram.envVersion
-      console.log("----当前运行环境："+env)
-      this.globalData.env=env
-
-
       //  监听活动配置
       db.collection('activity').watch({
         onChange:snapshot=>{

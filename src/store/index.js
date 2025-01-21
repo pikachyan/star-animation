@@ -30,6 +30,11 @@ export default new Vuex.Store({
         // 活动总分
         activity_total_score:0,
     },
+    getters:{
+      getActivityType(state){
+          return state.activityType
+      }
+    },
     mutations: {
         updateUserActivityFile(state,data){
           state.userActivityFile=data

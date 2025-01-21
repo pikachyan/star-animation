@@ -12,12 +12,26 @@ export {
     deleteTask,
     getTaskList,
     getTaskDetail,
-    getOwnMission
+    getOwnMission,
+    hasMission,
+    updateMission
 }
 function createActivity(data){
     return db.collection('activity').add({
         data: data
     })
+}
+
+// 更新任务的状态
+function updateMission(id,data){
+    return db.collection('user-mission-2025').doc(id).update({
+        data:data
+    })
+}
+
+//  检查一个任务是否存在
+function hasMission(id){
+    return db.collection('user-mission-2025').doc(id).get()
 }
 
 function getActivityInfo(id){

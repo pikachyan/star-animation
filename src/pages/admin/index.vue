@@ -1,60 +1,35 @@
 <template>
-  <view>
+  <view style="display: flex;justify-content: center;align-items: center;height: 100vh">
 
     <template >
       <u-grid
-          col="1"
+          col="3"
           @click="click"
       >
-        <u-grid-item  v-for="(item,index) in menuList" :key="index">
-          <u-icon
-              :customStyle="{paddingTop:40+'rpx'}"
-              :name="item.icon"
-              :size="52"
-          ></u-icon>
-          <text class="grid-text">{{item.name}}</text>
-        </u-grid-item>
+        <template  v-for="(item,index) in menuList">
+          <u-grid-item v-if="item.permission.includes(userInfo.permission)" :key="index">
+            <u-icon
+                :customStyle="{paddingTop:40+'rpx'}"
+                :name="item.icon"
+                :size="52"
+            ></u-icon>
+            <text class="grid-text">{{item.name}}</text>
+          </u-grid-item>
+        </template>
+
       </u-grid>
     </template>
-    <u-grid
-        col="1"
-    >
-      <u-grid-item>
-        <u-icon
-            :customStyle="{paddingTop:40+'rpx'}"
-            name="scan"
-            :size="52"
-        ></u-icon>
-        <text class="grid-text">奖励快速验证</text>
-      </u-grid-item>
-    </u-grid>
   </view>
 </template>
 
 <script>
-import {mapGetters, mapActions, mapMutations} from 'vuex';
+import {mapGetters, mapActions, mapMutations, mapState} from 'vuex';
+import {hasMission} from "@/api/activityApi";
+import {updateMission} from "../../api/activityApi";
 
 export default {
-  components: {},
-  mixins: [],
-  created() {
-
-  },
-  mounted() {
-
-  },
-  onLoad(ctx) {
-
-  },
-  onReady() {
-
-  },
-  onShow() {
-
-  },
-  watch: {},
   computed: {
-    ...mapGetters([])
+    ...mapState(['userInfo'])
   },
   props: [],
   data() {
@@ -63,13 +38,20 @@ export default {
         {
           name:'活动配置',
           icon:'setting',
-          path:'/pages/admin/activity-config'
+          path:'/pages/admin/activity-config',
+          permission:[1,2]
         },
         {
           name:'管理员列表',
           icon:'file-text',
-          path:'/pages/admin/admin-list'
+          path:'/pages/admin/admin-list',
+          permission:[1,2]
         },
+        {
+          name:'任务验证',
+          icon:'scan',
+          permission:[1,2,3]
+        }
       ]
     }
   },
@@ -77,9 +59,45 @@ export default {
   methods: {
     click(i){
       console.log(i)
-      uni.navigateTo({
-        url:this.menuList[i].path
-      })
+      if(i!==2){
+        uni.navigateTo({
+          url:this.menuList[i].path
+        })
+      }else{
+        uni.scanCode({
+          scanType:['qrCode'],
+          onlyFromCamera:false,
+          success:r=>{
+            uni.showModal({
+              title:'提示',
+              content:'是否确认任务已完成',
+              success:async i=>{
+                if(i.confirm){
+                  //  验证是否存在任务
+                  const missionId=r.result
+                  const has=await hasMission(missionId).catch(e=>{
+                    return  uni.$u.toast('该任务不存在或异常')
+                  })
+                  console.log(has)
+                  const passMissionRes=await updateMission(missionId,{
+                    npc_id:this.userInfo._id,
+                    complete_type:2,
+                    finish_time:new Date().getTime()
+                  }).catch(e=>{
+                    console.log(e)
+                    return  uni.$u.toast('验证任务异常')
+                  })
+                  console.log(passMissionRes)
+                  if(passMissionRes.errMsg.includes('update:ok')&&passMissionRes.stats.updated==1){
+                    uni.$u.toast('已通过')
+                  }
+                }
+              }
+            })
+          }
+        })
+      }
+
     }
   },
 
