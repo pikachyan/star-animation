@@ -27,7 +27,7 @@
           <!--    有数据    -->
           <template v-if="showUsedUser">
             <text style="display:flex;text-align:center;line-height:35px;font-size: 22px;justify-content:center;width: 100%;">
-              我们发现了一个休眠的角色
+              发现了一个正在休眠的角色
               你还记得他吗？
             </text>
             <view style="margin:20px 0;width: 120px;height: 120px">

@@ -29,8 +29,8 @@
     </view>
     <view style="padding:0 15px;align-items:center;margin-top:5px;display: flex;justify-content: space-between">
       <text style="font-size:11px;color:#fff;font-family: alm">
-        每批任务完成任意一个
-        可获得一次刷新列表的机会（不计数）
+        完成每批任务中任意一个
+        可获得一次刷新列表的机会（不累计）
       </text>
       <view>
         <u-button
@@ -295,7 +295,7 @@ export default {
               task_id: resultArr[randomIndex]._id,
               task_info: resultArr[randomIndex],
               user_id: this.user_id,
-              ser_info: this.userInfo,
+              user_info: this.userInfo,
               create_time: new Date().getTime(),
             };
           }
@@ -314,22 +314,23 @@ export default {
     async refreshMission(){
       this.loading=true;
       uni.removeStorageSync('first_fresh')
-      const refreshUpdateRes = await db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
-        data:{
-          hasMissionRefresh:0
-        }
-      })
-      console.log(refreshUpdateRes)
-      // 修改当前任务表状态，已完成的跳过 未完成的标记为状态3，然后提交，使用云函数操作
       try{
+        wx.cloud.callFunction({
+          name:'refreshMission',
+          data:{
+            user_id:this.user_id
+          },
+          complete:res=>{
+            console.log(res)
 
+          }
+        })
 
       }catch (e) {
         uni.$u.toast('变更旧的任务状态出现问题')
         return
       }
 
-      // 建立新任务表
       // const newMissionList=this.createMissionList
 
     }
