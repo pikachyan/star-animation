@@ -5,6 +5,7 @@ const db=cloud.database(),_=db.command
 
 
 exports.main = async (event, context) => {
+   //  变更档案的可刷新状态
    const checkRes = await db.collection('user-activity-2025').where({
     user_id:_.eq(event.user_id)
     }).update({
@@ -13,14 +14,21 @@ exports.main = async (event, context) => {
       }
     })
   console.log(checkRes)
-  if(checkRes.errMsg.inludes(''))
-  return await db.collection('user-mission-2025').where({
-    user_id: _.eq(event.user_id),
-    complete_type:_.eq(1)
-  }).update({
-    data:{
-      complete_type:3,
-      finish_time:new Date().getTime()
-    }
-  })
+    //     放弃列表中未完成的任务
+    const abandonMissionRes = await db.collection('user-mission-2025').where({
+          user_id: _.eq(event.user_id),
+          complete_type:_.eq(1)
+      }).update({
+          data:{
+              complete_type:3,
+              finish_time:new Date().getTime()
+          }
+      })
+      console.log(abandonMissionRes)
+    return cloud.callFunction({
+        name:'createMissionList',
+        data:{
+            user_id:event.user_id,
+        }
+    })
 }

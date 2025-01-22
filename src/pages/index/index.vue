@@ -8,6 +8,11 @@
         @change="pageChange"
         :current="pageIndex"
         style="height: 100vh">
+      <swiper-item  >
+        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
+          <score :mgTop="mgTop"></score>
+        </scroll-view>
+      </swiper-item>
       <swiper-item >
         <image
             :lazy-load="false"
@@ -16,7 +21,6 @@
             src="cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中01.png"
             v-if="activityType==='wait'"></image>
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-
           <task v-if="activityType==='start'||activityType==='end'" :mgTop="mgTop"></task>
         </scroll-view>
       </swiper-item>
@@ -30,11 +34,8 @@
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
           <story v-if="activityType==='start'||activityType==='end'"></story>
         </scroll-view>
-      </swiper-item>
-      <swiper-item  >
-        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <score :mgTop="mgTop"></score>
-        </scroll-view>
+
+
       </swiper-item>
       <swiper-item  >
         <scroll-view :style="{height:scrollHeight+'px'}" class="page-item">

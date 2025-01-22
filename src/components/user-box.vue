@@ -9,24 +9,24 @@
   >
     <view class="content">
       <!--  登录态  -->
-      <template v-if="!isLogin">
+      <template v-if="isLogin">
         <view class="user-info">
           <view class="left">
             <u-image
                 :showMenuByLongpress="false"
-                src="https://cdn.uviewui.com/uview/album/1.jpg"
+                :src="userInfo.avatarImg"
                 width="70" height="70"
                 shape="circle"></u-image>
           </view>
 
           <view class="right">
             <view>
-              <u-text text="无敌天线娘" lines="1" size="22px"></u-text>
+              <u-text :text="userInfo.name" lines="1" size="22px"></u-text>
             </view>
             <view class="bottom">
-              <user-tag :role="1"></user-tag>
+              <user-tag :role="role"></user-tag>
               <view class="iconfont icon-icon-test" style="font-size: 25px;color: #333333"></view>
-              <view class="iconfont icon-erweima" style="font-size: 25px;color: #333333"></view>
+
             </view>
           </view>
         </view>
@@ -35,6 +35,7 @@
           <u-cell @click="toPage(1)" clickable icon="setting-fill" title="个人信息"></u-cell>
           <u-cell @click="toPage(2)" clickable :border="false" icon="integral-fill" title="星浔后台"></u-cell>
         </u-cell-group>
+        <view class=" iconfont icon-erweima" style="width:100%;text-align: center;margin: 10px 0; font-size: 15px;color: #a3a3a3">显示用户二维码</view>
       </template>
       <!--  未登录  -->
       <template v-else>
@@ -60,9 +61,9 @@ export default {
 
   watch: {},
   computed: {
-    ...mapState(['isLogin']),
+    ...mapState(['isLogin','userInfo']),
     role(){
-      return 1
+      return this.$store.state.userInfo.permission
     },
     cellStyle(){
       return{

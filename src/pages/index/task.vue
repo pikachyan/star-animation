@@ -2,46 +2,52 @@
   <view style="display: flex;flex-direction: column;padding: 0 15px"
     :style="{marginTop:mgTop}"
   >
-    <u-overlay :show="loading" opacity="0"></u-overlay>
-    <text style="line-height:50px;text-align: center;font-family: alm;color: #fff;font-size: 25px"> 任务中心</text>
-    <text style="margin-bottom:20px;line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 14px">
-      点击对应项目查看详情，前往任务对应的区域
-      寻找对应的NPC进行任务，NPC扫码确认即可完成任务
-      任务完成可获取等级，完成4个任务即可刷新一批任务
-    </text>
-    <view style="position: relative;">
-      <view
-          class="item"
-          :class="{'animate':loading,'item_loading':loading}"
-          @click="openDialog(index)" v-for="(item,index) in missionList"
-          :key="index"
-      >
-        <template v-if="!loading">
-          <text style="margin-right:5px;font-family: alm;font-size: 60rpx" :style="{color:gradeColor(item.task_info.task_grade)}">
-            {{item.task_info.task_grade||''}}
-          </text>
-          <text class="mission-info">{{item.task_info.task_name||''}}</text>
-          <view style="width:50px;">
-            <view class="complete" v-if="item.complete_type==2">已经完成</view>
-          </view>
-        </template>
-      </view>
-    </view>
-    <view style="padding:0 15px;align-items:center;margin-top:5px;display: flex;justify-content: space-between">
-      <text style="font-size:11px;color:#fff;font-family: alm">
-        完成每批任务中任意一个
-        可获得一次刷新列表的机会（不累计）
+    <template v-if="activityType!=='end'">
+      <u-overlay :show="loading" opacity="0"></u-overlay>
+      <text style="line-height:50px;text-align: center;font-family: alm;color: #fff;font-size: 25px"> 任务中心</text>
+      <text style="margin-bottom:20px;line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 14px">
+        点击对应项目查看详情，前往任务对应的区域
+        寻找对应的NPC进行任务，NPC扫码确认即可完成任务
+        任务完成可获取等级，完成4个任务即可刷新一批任务
       </text>
-      <view>
-        <u-button
-            @click="refreshMission"
-            throttleTime="2000"
-            :disabled="userActivityFile.hasMissionRefresh==0"
-            text="刷新"
-            size="mini"
-            :type="userActivityFile.hasMissionRefresh==0?'info':'warning'"
-        ></u-button>
+      <view style="position: relative;">
+        <view
+            class="item"
+            :class="{'animate':loading,'item_loading':loading}"
+            @click="openDialog(index)" v-for="(item,index) in missionList"
+            :key="index"
+        >
+          <template v-if="!loading">
+            <text style="margin-right:5px;font-family: alm;font-size: 60rpx" :style="{color:gradeColor(item.task_info.task_grade)}">
+              {{item.task_info.task_grade||''}}
+            </text>
+            <text class="mission-info">{{item.task_info.task_name||''}}</text>
+            <view style="width:50px;">
+              <view class="complete" v-if="item.complete_type==2">已经完成</view>
+            </view>
+          </template>
+        </view>
       </view>
+      <view style="padding:0 15px;align-items:center;margin-top:5px;display: flex;justify-content: space-between">
+        <text style="font-size:11px;color:#fff;font-family: alm">
+          完成每批任务中任意一个
+          可获得一次刷新列表的机会（不累计）
+        </text>
+        <view>
+          <u-button
+              @click="refreshMission"
+              throttleTime="2000"
+              :disabled="userActivityFile.hasMissionRefresh==0"
+              text="刷新"
+              size="mini"
+              :type="userActivityFile.hasMissionRefresh==0?'info':'warning'"
+          ></u-button>
+        </view>
+      </view>
+    </template>
+    <view class="end-box" v-else>
+      <text style="color:#fff;font-family: alm;margin-bottom: 30px;font-size: 100rpx">活动结束了</text>
+      <text style="color:#fff;font-family: alm;font-size: 40rpx">任务中心已关闭</text>
     </view>
 
     <u-popup
@@ -51,7 +57,7 @@
       @close="closeDialog"
       @cancel="closeDialog"
       :start="false"
-      overlay-opacity="0.1"
+      overlay-opacity="0.4"
     >
       <view style="display: flex;flex-direction: column;margin: 10px;width: 90vw">
         <text style="font-family: alm;font-size: 18px;font-weight: bold">{{currentMissionInfo.task_info.task_name}}</text>
@@ -81,12 +87,47 @@ export default {
   components: { UserGradeTag},
   created() {
     this.marginTop=uni.getWindowInfo().statusBarHeight
-    uni.navigateTo({
-      url:'/pages/admin/index'
+    // uni.navigateTo({
+    //   url:'/pages/admin/index'
+    // })
+    // 获取任务表与处理结算
+    this.userMissionHandler= db.collection('user-mission-2025').where({
+      // 任务完成情况 1未完成2已完成3已结算
+      complete_type:db.command.eq(1).or(db.command.eq(2)),
+      user_id: db.command.eq(this.user_id),
+    }).watch({
+      onChange:async snapshot => {
+        console.log('用户任务表变化', snapshot)
+        // 在这里处理任务完成
+        if (snapshot.docChanges[0].dataType === 'update' && snapshot.docChanges[0].doc.complete_type === 2) {
+          uni.$u.toast('等级+' + snapshot.docChanges[0].doc.score)
+          if (!uni.getStorageSync('first_fresh')){
+            uni.setStorageSync('first_fresh', true)
+            try {
+              const refreshUpdateRes = await db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
+                data:{
+                  hasMissionRefresh:1
+                }
+              })
+              console.log(refreshUpdateRes)
+            } catch (e) {
+              console.log('更改可刷新状态出问题'+e)
+            }
+          }
+        }
+        //
+        this.$store.commit('updateMissionList', snapshot.docs)
+        // this.closeDialog()
+        setTimeout(()=>{
+          this.loading=false
+        },1000)
+      },
+      onError: err=> {
+        console.error('用户任务表变化监听出错', err)
+      }
     })
   },
   mounted() {
-
   },
 
   watch: {
@@ -110,50 +151,26 @@ export default {
             }).get()
             console.log(checkMissionListRes)
             if(checkMissionListRes.data.length===0){
-              console.log('构建任务表')
-              let missionList=this.createMissionList()
-              for (const item of missionList) {
-                const res= await db.collection('user-mission-2025').add({
-                  data:item
-                })
-                console.log(res)
-              }
-              this.$store.commit('updateMissionList',missionList)
-              this.loading=false
-            }else{
-              // 获取任务表与处理结算
-              this.userMissionHandler= db.collection('user-mission-2025').where({
-                // 任务完成情况 1未完成2已完成3已结算
-                complete_type:db.command.eq(1).or(db.command.eq(2)),
-                user_id: db.command.eq(this.user_id),
-              }).watch({
-                onChange:async snapshot => {
-                  console.log('用户任务表变化', snapshot)
-                  // 在这里处理任务完成
-                  if (snapshot.docChanges[0].dataType === 'update' && snapshot.docChanges[0].doc.complete_type === 2) {
-                    uni.$u.toast('等级+' + snapshot.docChanges[0].doc.score)
-                    if (!uni.getStorageSync('first_fresh'))
-                      uni.setStorageSync('first_fresh', true)
-                    try {
-                      const refreshUpdateRes = await db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
-                        data:{
-                          hasMissionRefresh:1
-                        }
-                      })
-                      console.log(refreshUpdateRes)
-                    } catch (e) {
-                      console.log('更改可刷新状态出问题'+e)
-                    }
-                  }
-                  //
-                  this.$store.commit('updateMissionList', snapshot.docs)
-                  // this.closeDialog()
-                  this.loading=false
+              // console.log('构建任务表')
+              // let missionList=this.createMissionList()
+              // for (const item of missionList) {
+              //   const res= await db.collection('user-mission-2025').add({
+              //     data:item
+              //   })
+              //   console.log(res)
+              // }
+              wx.cloud.callFunction({
+                name:'createMissionList',
+                data:{
+                  user_id:this.user_id
                 },
-                onError: err=> {
-                  console.error('用户任务表变化监听出错', err)
+                success:res=>{
+                  console.log(res)
+                  this.$store.commit('updateMissionList',res.missionList)
+                  this.loading=false
                 }
               })
+
             }
           }
         } )
@@ -315,19 +332,19 @@ export default {
       this.loading=true;
       uni.removeStorageSync('first_fresh')
       try{
-        wx.cloud.callFunction({
-          name:'refreshMission',
-          data:{
-            user_id:this.user_id
-          },
-          complete:res=>{
-            console.log(res)
-
+        const refreshRes = await wx.cloud.callFunction({
+          name: 'refreshMission',
+          data: {
+            user_id: this.user_id
           }
+        }).finally(e=>{
+          setTimeout(()=>{
+            this.loading=false;
+          },1000)
         })
-
+        console.log(refreshRes)
       }catch (e) {
-        uni.$u.toast('变更旧的任务状态出现问题')
+        // uni.$u.toast('变更旧的任务状态出现问题')
         return
       }
 
@@ -349,6 +366,20 @@ export default {
 @mixin background {
   background: linear-gradient(90deg, #F1F2F4 25%, #dddbdb 37%, #F1F2F4 50%);
   background-size: 400% 100%;
+}
+.end-box{
+  width: 80vw;
+  height: 300px;
+  border-radius: 16px;
+  border: 5px solid  #dddddd;
+  position: fixed;
+  top:50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
 .mission-info{
   text-align: center;

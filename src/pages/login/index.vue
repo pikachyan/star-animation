@@ -2,7 +2,7 @@
   <view class="content" >
     <text style="color:#f6f6f6;font-family: alm;position: fixed;top:-20px;left: 0">1</text>
     <view v-if="videoDownloadIng">
-      <view class="downloadTxt" style="width:200px;">正在加载必要资源</view>
+      <view class="downloadTxt" style="width:200px;">正在加载资源</view>
       <u-line-progress inactiveColor="#fff" height="20px" :percentage="progress" activeColor="#9fcbf2"></u-line-progress>
     </view>
     <template v-else>
@@ -27,7 +27,7 @@
           <!--    有数据    -->
           <template v-if="showUsedUser">
             <text style="display:flex;text-align:center;line-height:35px;font-size: 22px;justify-content:center;width: 100%;">
-              发现了一个正在休眠的角色
+              发现了一个休眠中的角色
               你还记得他吗？
             </text>
             <view style="margin:20px 0;width: 120px;height: 120px">
@@ -90,18 +90,16 @@ export default {
   components: {},
   mixins: [],
   beforeCreate() {
-    if(uni.getStorageSync('skip_login_2025')){
+
+  },
+  created() {
+    if(uni.getStorageSync('skip_login_2025')&&uni.getStorageSync('user_id')){
       uni.reLaunch({
         url:'/pages/index/index'
       })
     }
     this.paddingTop=uni.getMenuButtonBoundingClientRect().bottom+3
-
-  },
-  created() {
-    const fs = wx.getFileSystemManager()
-    let videoDownUrl
-
+    let videoDownUrl=''
     uni.getSystemInfo({
       success:(res)=> {
         const screenWidth = res.screenWidth; // 屏幕宽度
@@ -125,7 +123,6 @@ export default {
       this.checkUser()
       this.videoDownloadIng=false
     }else{
-
       this.videoDownloadIng=true
       const downLoad =  uni.downloadFile({
         url:videoDownUrl,

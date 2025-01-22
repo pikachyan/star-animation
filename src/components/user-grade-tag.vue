@@ -2,7 +2,7 @@
     <view class="tag-box">
       <text style="color:#fff;font-size:18px;font-family: alm;">入梦使</text>
       <!--  star-list  -->
-      <image v-for="i in parseInt(score/10+1)" :key="i" style="margin-left: 2px;width: 18px;height: 18px" src="@/static/icons/star.png"></image>
+      <image v-for="i in Math.min(4, score / 10)" :key="i" style="margin-left: 2px;width: 18px;height: 18px" src="@/static/icons/star.png"></image>
     </view>
 </template>
 
@@ -13,10 +13,9 @@ export default {
   computed: {
     ...mapState([ 'isLogin']),
   },
-  props: [],
+  props: ['score'],
   data() {
     return {
-      score:24
     }
   },
 
@@ -25,7 +24,7 @@ export default {
 
 <style lang='scss' scoped>
 .tag-box{
-  background-color: #d8d042;
+  background-color: #f19c50;
   padding: 5px;
   display: flex;
   align-items: center;
