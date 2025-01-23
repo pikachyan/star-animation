@@ -1,16 +1,22 @@
 {
-	"name": "",
-	"appid": "wx7c69772b2b6dfc6a",
-	"description": "",
-	"versionName": "1.0.0",
-	"versionCode": "100",
-	"transformPx": false,
-	"mp-weixin": { /* 微信小程序特有相关 */
-		"appid": "wx7c69772b2b6dfc6a",
-		"setting": {
-			"urlCheck": false
-		},
-		"cloudfunctionRoot": "./cloudfunc/",
-		"usingComponents": true
-	}
+    "name" : "",
+    "appid" : "wx7c69772b2b6dfc6a",
+    "description" : "",
+    "versionName" : "1.0.0",
+    "versionCode" : "100",
+    "transformPx" : false,
+    "mp-weixin" : {
+        /* 微信小程序特有相关 */
+        "appid" : "wx7c69772b2b6dfc6a",
+        "optimization" : {
+            "subPackages" : true
+        },
+        "setting" : {
+            "urlCheck" : false,
+            "minified" : true,
+            "postcss" : true
+        },
+        "cloudfunctionRoot" : "./cloudfunc/",
+        "usingComponents" : true
+    }
 }

@@ -35,7 +35,8 @@
           <u-cell @click="toPage(1)" clickable icon="setting-fill" title="个人信息"></u-cell>
           <u-cell @click="toPage(2)" clickable :border="false" icon="integral-fill" title="星浔后台"></u-cell>
         </u-cell-group>
-        <view class=" iconfont icon-erweima" style="width:100%;text-align: center;margin: 10px 0; font-size: 15px;color: #a3a3a3">显示用户二维码</view>
+        <view @click="showUserQrcode=!showUserQrcode" class=" iconfont icon-erweima" style="width:100%;text-align: center;margin: 10px 0; font-size: 15px;color: #a3a3a3">显示用户二维码</view>
+        <canvas type="2d" v-if="showUserQrcode"  id="qrcode" canvas-id="qrcode" style="width: 150px;height:150px;align-self: center;margin:5px 0" />
       </template>
       <!--  未登录  -->
       <template v-else>
@@ -47,6 +48,7 @@
 </template>
 
 <script>
+import weappQRcode from "@/utils/weapp.qrcode.esm";
 import {mapState} from "vuex";
 import UserTag from "@/components/user-tag.vue";
 
@@ -59,9 +61,36 @@ export default {
 
   },
 
-  watch: {},
+  watch: {
+    showUserQrcode(){
+      if(this.showUserQrcode){
+        this.$nextTick(()=>{
+          const query = wx.createSelectorQuery().in(this)
+          query.select('#qrcode')
+              .fields({
+                node: true,
+                size: true
+              })
+              .exec(async res => {
+                const canvas = res[0].node
+                // 调用方法drawQrcode生成二维码
+                await weappQRcode({
+                  canvas: canvas,
+                  canvasId: 'qrcode',
+                  width: 150,
+                  height: 150,
+                  background: '#ffffff',
+                  foreground: '#000000',
+                  text:this.user_id,
+                })
+              })
+        })
+
+      }
+    },
+  },
   computed: {
-    ...mapState(['isLogin','userInfo']),
+    ...mapState(['isLogin','user_id','userInfo']),
     role(){
       return this.$store.state.userInfo.permission
     },
@@ -76,13 +105,16 @@ export default {
   props: [],
   data() {
     return {
-      showPopup:false
+      showPopup:false,
+      showUserQrcode:false
     }
   },
 
   methods: {
+
     onClose(){
       this.showPopup = false
+      this.showUserQrcode=false
     },
     onOpen(){
       this.showPopup = true

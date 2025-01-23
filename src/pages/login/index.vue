@@ -8,6 +8,7 @@
     <template v-else>
       <view v-if="showVideoBox" class="video-content">
         <video
+            id="video"
             autoplay
             object-fit="fill"
             @ended="onPlayEnd"
@@ -44,7 +45,7 @@
           <!--     创建角色    -->
           <template v-if="showCreateUser">
             <text style="color:#4c77c5;font-family:alm;font-size: 60rpx;margin-bottom: 50px">“入梦使”</text>
-            <view style="line-height:60rpx;color:#4c77c5;font-family:alm;font-size: 50rpx">请告诉<text style="font-family:alm;color:#24b0a8">我</text><text style="font-family:alm;color:#c44c74">们</text></view>
+            <view style="line-height:60rpx;color:#4c77c5;font-family:alm;font-size: 50rpx">请告诉<text @click="showTakeUser=true" style="font-family:alm;color:#24b0a8">我</text><text style="font-family:alm;color:#c44c74">们</text></view>
             <text style="line-height:60rpx;color:#4c77c5;font-family:alm;font-size: 50rpx">你的身份</text>
             <view style="margin:20px 0;">
               <button class="avatar-wrapper" open-type="chooseAvatar" @chooseavatar="onChooseAvatar">
@@ -70,14 +71,28 @@
               </button>
             </view>
           </template>
-          <view style="width: 240px;margin-top: 20px">
+          <view style="width: 240px;margin-top: 20px;display: flex">
             <u-text @click="userContinue(1)" align="center"  decoration="underline" text="先随便看看"></u-text>
+            <u-text @click="videoPlay" align="center" text="再次播放OP"></u-text>
+          </view>
+          <view v-if="showCreateUser&&hasUserId" style="width: 240px;margin-top: 20px;display: flex">
+            <u-text @click="showUsedUser=true;showCreateUser=false" color="#C8C5C5" align="center" text="使用已保存的注册资料"></u-text>
           </view>
         </template>
       </template>
     </template>
 
-
+    <u-modal
+        title="取回角色"
+        asyncClose
+      :show="showTakeUser"
+      :showCancelButton="false"
+      @close="showTakeUser=false"
+        closeOnClickOverlay
+        @confirm="takeUser"
+    >
+      <u-input v-model="id_value" placeholder="输入用户id" border="bottom"></u-input>
+    </u-modal>
   </view>
 </template>
 
@@ -93,8 +108,9 @@ export default {
 
   },
   created() {
+    this.hasUserId=!!uni.getStorageSync('user_id')
     if(uni.getStorageSync('skip_login_2025')&&uni.getStorageSync('user_id')){
-      uni.reLaunch({
+      uni.switchTab({
         url:'/pages/index/index'
       })
     }
@@ -140,19 +156,6 @@ export default {
         this.progress=res.progress
       })
     }
-
-
-  },
-  mounted() {
-  },
-  onLoad(ctx) {
-
-  },
-  onReady() {
-
-  },
-  onShow() {
-
   },
   watch: {
     progress(){
@@ -169,6 +172,9 @@ export default {
   props: [],
   data() {
     return {
+      id_value:'',
+      showTakeUser:false,
+      hasUserId:false,
       videoDownloadIng:false,
       progress:0,
 
@@ -191,6 +197,28 @@ export default {
   },
 
   methods: {
+    takeUser(){
+      getUserInfo(this.id_value).then(res=>{
+        console.log(res)
+        this.$store.commit('updateUser',res.data)
+        uni.$u.toast('取回角色成功')
+        uni.reLaunch({
+          url:'/pages/index/index'
+        })
+      }).catch(e=>{
+        uni.$u.toast('取回角色异常')
+      })
+    },
+    videoPlay(){
+      // this.showVideoBox=true
+      // const videoCtx = uni.createVideoContext('video')
+      // console.log(videoCtx)
+      // videoCtx.play()
+      uni.removeStorageSync('opening_2025')
+      uni.reLaunch({
+        url:'/pages/login/index'
+      })
+    },
     register(){
       console.log(111111111)
       if(this.userName===''){
@@ -299,8 +327,8 @@ button{
 </style>
 <style lang='scss' scoped>
 .avatar-wrapper{
-  width: 120px;
-  height: 120px;
+  width: 90px;
+  height: 90px;
   border-radius: 8px;
   box-shadow: 0 0 2px 2px #e4e4e4;
 }

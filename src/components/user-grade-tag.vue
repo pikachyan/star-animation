@@ -1,8 +1,8 @@
 <template>
     <view class="tag-box">
-      <text style="color:#fff;font-size:18px;font-family: alm;">入梦使</text>
+      <text style="color:#fff;font-size:36rpx;font-family: alm;">入梦使</text>
       <!--  star-list  -->
-      <image v-for="i in Math.min(4, score / 10)" :key="i" style="margin-left: 2px;width: 18px;height: 18px" src="@/static/icons/star.png"></image>
+      <image v-for="i in Math.min(4, score / 10)" :key="i" style="margin-left: 2px;width: 36rpx;height:36rpx" src="@/static/icons/star.png"></image>
     </view>
 </template>
 

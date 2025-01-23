@@ -18,7 +18,7 @@
             :lazy-load="false"
             mode="widthFix"
             style="width:100vw"
-            src="cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中01.png"
+            :src="notOpenImg1"
             v-if="activityType==='wait'"></image>
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
           <task v-if="activityType==='start'||activityType==='end'" :mgTop="mgTop"></task>
@@ -29,7 +29,7 @@
             :lazy-load="false"
             mode="widthFix"
             style="width:100vw"
-            src="cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中02.png"
+            :src="notOpenImg2"
             v-if="activityType==='wait'"></image>
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
           <story v-if="activityType==='start'||activityType==='end'"></story>
@@ -69,6 +69,8 @@
     },
 		data() {
 			return {
+        notOpenImg1:'',
+        notOpenImg2:'',
         currentTime: new Date().getTime(),
         scrollHeight:0,
         mgTop:uni.getMenuButtonBoundingClientRect().top+5+'px',
@@ -84,6 +86,17 @@
             console.log('登陆成功')
           }
         })
+      }
+      // 计算屏幕比例
+      const ratio = uni.getWindowInfo().screenHeight / uni.getWindowInfo().screenWidth;
+      if (Math.abs(ratio - 16 / 9) < 0.01) {
+        console.log("屏幕比例接近 16:9");
+        this.notOpenImg1='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中01.png'
+        this.notOpenImg2='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中02.png'
+      } else {
+        console.log("屏幕比例为:", ratio);
+        this.notOpenImg1='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中01-19-9.png'
+        this.notOpenImg2='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中0219-9.png'
       }
 		},
     watch:{
