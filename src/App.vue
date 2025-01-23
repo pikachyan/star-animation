@@ -65,63 +65,67 @@
 
 		},
     watch:{
-      isLogin(){
-        let userInfoHandler,userActivityFileHandler
-        if(this.isLogin){
-          // 监听用户信息
-          userInfoHandler = db.collection('user')
-              .doc(uni.getStorageSync('user_id'))
-              .watch({
-            onChange:snapshot=>{
-              console.log('用户信息变化', snapshot)
-              this.$store.commit('updateUser',snapshot.docs[0])
-            },
-            onError: err=> {
-              console.error('用户信息监听出错', err)
-            }
-          })
-          //   检查用户的活动配置 如无则创建
-          db.collection('user-activity-2025').where({
-            user_id: _.eq(this.user_id)
-          }).get().then(res=>{
-            console.log(res)
-            if(res.data.length===0){
-              let params={
-                user_id:this.user_id,
-                // 是否已领取礼物
-                getGiftType:0,
-                // 有无刷新次数
-                hasMissionRefresh:0,
-                // 完成任务的总分
-                score_total:0,
+      '$store.state.isLogin':{
+        deep: true,
+        handler(){
+          let userInfoHandler,userActivityFileHandler
+          if(this.isLogin){
+            // 监听用户信息
+            userInfoHandler = db.collection('user')
+                .doc(uni.getStorageSync('user_id'))
+                .watch({
+                  onChange:snapshot=>{
+                    console.log('用户信息变化', snapshot)
+                    this.$store.commit('updateUser',snapshot.docs[0])
+                  },
+                  onError: err=> {
+                    console.error('用户信息监听出错', err)
+                  }
+                })
+            //   检查用户的活动配置 如无则创建
+            db.collection('user-activity-2025').where({
+              user_id: _.eq(this.user_id)
+            }).get().then(res=>{
+              console.log(res)
+              if(res.data.length===0){
+                let params={
+                  user_id:this.user_id,
+                  // 是否已领取礼物
+                  getGiftType:0,
+                  // 有无刷新次数
+                  hasMissionRefresh:0,
+                  // 完成任务的总分
+                  score_total:0,
+                }
+                console.log('没有配置')
+                db.collection('user-activity-2025').add({
+                  data:params
+                }).then(res=>{
+                  console.log(res)
+                  if(res.errMsg.includes('add:ok')){
+                    this.$store.commit('updateUserActivityFile',params)
+                  }
+                })
+              }else{
+                userActivityFileHandler=db.collection('user-activity-2025').where({
+                  user_id:_.eq(this.user_id)
+                }).watch({
+                  onChange:snapshot=>{
+                    console.log('用户活动档案信息变化', snapshot)
+                    this.$store.commit('updateUserActivityFile',snapshot.docs[0])
+                  },
+                  onError: err=> {
+                    console.error('用户活动档案信息监听出错', err)
+                  }
+                })
               }
-              console.log('没有配置')
-              db.collection('user-activity-2025').add({
-                data:params
-              }).then(res=>{
-                console.log(res)
-                if(res.errMsg.includes('add:ok')){
-                  this.$store.commit('updateUserActivityFile',params)
-                }
-              })
-            }else{
-              userActivityFileHandler=db.collection('user-activity-2025').where({
-                user_id:_.eq(this.user_id)
-              }).watch({
-                onChange:snapshot=>{
-                  console.log('用户活动档案信息变化', snapshot)
-                  this.$store.commit('updateUserActivityFile',snapshot.docs[0])
-                },
-                onError: err=> {
-                  console.error('用户活动档案信息监听出错', err)
-                }
-              })
-            }
-          })
-        }else{
-          userActivityFileHandler.close()
-          userInfoHandler.close()
-          this.$store.commit('logOut')
+            })
+          }else{
+            userActivityFileHandler.close()
+            userInfoHandler.close()
+            this.$store.commit('logOut')
+          }
+
         }
 
       }
