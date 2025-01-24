@@ -50,7 +50,14 @@ export default {
         {
           name:'任务验证',
           icon:'scan',
-          permission:[1,2,3]
+          permission:[1,2,3],
+          type:'func'
+        },
+        {
+          name:'奖励验证',
+          icon:'gift',
+          permission:[1,2,3],
+          type:'func1'
         }
       ]
     }
@@ -59,7 +66,7 @@ export default {
   methods: {
     click(i){
       console.log(i)
-      if(i!==2){
+      if(!this.menuList[i].type){
         uni.navigateTo({
           url:this.menuList[i].path
         })
@@ -70,27 +77,41 @@ export default {
           success:r=>{
             uni.showModal({
               title:'提示',
-              content:'是否确认任务已完成',
-              success:async i=>{
-                if(i.confirm){
-                  //  验证是否存在任务
-                  const missionId=r.result
-                  const has=await hasMission(missionId).catch(e=>{
-                    return  uni.$u.toast('该任务不存在或异常')
-                  })
-                  console.log(has)
-                  const passMissionRes=await updateMission(missionId,{
-                    npc_id:this.userInfo._id,
-                    complete_type:2,
-                    finish_time:new Date().getTime()
-                  }).catch(e=>{
-                    console.log(e)
-                    return  uni.$u.toast('验证任务异常')
-                  })
-                  console.log(passMissionRes)
-                  if(passMissionRes.errMsg.includes('update:ok')&&passMissionRes.stats.updated==1){
-                    uni.$u.toast('已通过')
+              content:this.menuList[i].type==='func'?'是否确认任务已完成':'是否兑换用户奖励',
+              success:d=>{
+                if(d.confirm){
+                  if(this.menuList[i].type==='func'){
+                    wx.cloud.callFunction({
+                      name:'settlementMission',
+                      data:{
+                        missionId:r.result,
+                        npc_id:this.userInfo._id
+                      }
+                    }).then(res=>{
+                      console.log(res)
+                      if(res.stats.updated==1){
+                        uni.$u.toast('任务验证成功')
+                      }
+                    }).catch(e=>{
+                      uni.$u.toast('任务验证异常')
+                    })
+                  }else{
+                    wx.cloud.database().collection('user_activity_2025').where({
+                      _id:wx.cloud.database().command._eq(r.result)
+                    }).update({
+                      data:{
+                        getGiftType:1
+                      }
+                    }).then(res=>{
+                      console.log(res)
+                      if(res.stats.updated==1){
+                        uni.$u.toast('礼品已核销')
+                      }
+                    }).catch(e=>{
+                      uni.$u.toast('更新礼品核销状态异常')
+                    })
                   }
+
                 }
               }
             })

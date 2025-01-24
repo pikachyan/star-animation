@@ -58,7 +58,7 @@ exports.main =(event, context) => {
             taskList.push(db.collection('user-mission-2025').add({
                     data:{
                         finish_time:0,
-                        complete_type: 1, // 完成状态 1未完成 2已完成 3已放弃
+                        complete_type: 1, // 完成状态 1未完成 2真正的已完成 3已放弃 4待结算，在列表中显示已完成
                         npc_id: '',
                         score:  mission.score,
                         task_id:  mission._id,

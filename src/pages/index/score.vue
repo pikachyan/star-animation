@@ -49,7 +49,10 @@
       closeOnClickOverlay
       @close="showGiftQRcode=false"
     >
-      <canvas type="2d"  id="qrcode" canvas-id="qrcode" style="width: 150px;height:150px;align-self: center;margin:5px 0" />
+      <view>
+        <u-text align="center" text="礼品领取核验"></u-text>
+        <canvas type="2d"  id="qrcode" canvas-id="qrcode" style="width: 150px;height:150px;align-self: center;margin:5px 0" />
+      </view>
     </u-modal>
     <user-box ref="userBoxRef"></user-box>
   </view>
@@ -107,7 +110,7 @@ export default {
     '$store.state.userActivityFile.getGiftType':{
       deep:true,
       handler(n,o){
-        if(0===1){
+        if(n===1){
           this.showGiftQRcode=false
         }
       }

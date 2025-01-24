@@ -14,7 +14,7 @@ exports.main = async (event, context) => {
       }
     })
   console.log(checkRes)
-    //     放弃列表中未完成的任务
+    //     放弃列表中未完成的任务 completetype状态1的标记为状态3  状态4的标记状态2
     const abandonMissionRes = await db.collection('user-mission-2025').where({
           user_id: _.eq(event.user_id),
           complete_type:_.eq(1)
@@ -24,7 +24,16 @@ exports.main = async (event, context) => {
               finish_time:new Date().getTime()
           }
       })
-      console.log(abandonMissionRes)
+    const abandonMissionRes2 = await db.collection('user-mission-2025').where({
+        user_id: _.eq(event.user_id),
+        complete_type:_.eq(4)
+    }).update({
+        data:{
+            complete_type:2,
+            finish_time:new Date().getTime()
+        }
+    })
+      console.log(abandonMissionRes,abandonMissionRes2)
     return cloud.callFunction({
         name:'createMissionList',
         data:{

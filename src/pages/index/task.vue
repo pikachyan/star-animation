@@ -23,7 +23,7 @@
             </text>
             <text class="mission-info">{{item.task_info.task_name||''}}</text>
             <view style="width:50px;">
-              <view class="complete" v-if="item.complete_type==2">已经完成</view>
+              <view class="complete" v-if="item.complete_type==4">已经完成</view>
             </view>
           </template>
         </view>
@@ -67,7 +67,7 @@
           <canvas type="2d"  id="qrcode" canvas-id="qrcode" style="width: 150px;height:150px;align-self: center;margin:5px 0" />
           <u-text size="12" color="#ddd" text="*请向工作人员出示二维码结算任务" align="center"></u-text>
         </template>
-        <view style="width: 100%;height:150px;display: flex;align-items: center;justify-content: center" v-else>
+        <view style="width: 100%;height:150px;display: flex;align-items: center;justify-content: center" v-if="currentMissionInfo.complete_type==4">
           <u-text size="24px" type="success" align="center" text="你已完成该任务"></u-text>
         </view>
         <u-button @click="closeDialog" shape="circle" text="关闭"></u-button>
@@ -93,14 +93,15 @@ export default {
     // 获取任务表与处理结算
     this.userMissionHandler= db.collection('user-mission-2025').where({
       // 任务完成情况 1未完成2已完成3已结算
-      complete_type:db.command.eq(1).or(db.command.eq(2)),
+      complete_type:db.command.eq(1).or(db.command.eq(4)),
       user_id: db.command.eq(this.user_id),
     }).watch({
       onChange:async snapshot => {
         console.log('用户任务表变化', snapshot)
         // 在这里处理任务完成
-        if (snapshot.docChanges[0].dataType === 'update' && snapshot.docChanges[0].doc.complete_type === 2) {
+        if (snapshot.type !== 'init') {
           uni.$u.toast('等级+' + snapshot.docChanges[0].doc.score)
+          // 处理首次刷新
           if (!uni.getStorageSync('first_fresh')){
             uni.setStorageSync('first_fresh', true)
             try {
@@ -114,10 +115,17 @@ export default {
               console.log('更改可刷新状态出问题'+e)
             }
           }
+          // 处理本批任务完成
+          const completeMissionCount=snapshot.docs.filter(item => item.complete_type === 4).length
+          if(completeMissionCount===4){
+            this.loading=true
+            const res = await this.refreshMission()
+            console.log(res)
+          }
         }
         //
         this.$store.commit('updateMissionList', snapshot.docs)
-        // this.closeDialog()
+        this.closeDialog()
         setTimeout(()=>{
           this.loading=false
         },1000)
@@ -143,7 +151,7 @@ export default {
           // 活动开始构建任务表
           if(this.getActivityType==='start'&&this.isLogin){
             this.loading=true
-            // 检查是否生成了任务
+            console.log('检查是否生成了任务')
             const checkMissionListRes = await db.collection('user-mission-2025').where({
               user_id:db.command.eq(this.user_id),
               // 未完成数量不为零即有任务表
@@ -151,16 +159,9 @@ export default {
             }).get()
             console.log(checkMissionListRes)
             if(checkMissionListRes.data.length===0){
-              // console.log('构建任务表')
-              // let missionList=this.createMissionList()
-              // for (const item of missionList) {
-              //   const res= await db.collection('user-mission-2025').add({
-              //     data:item
-              //   })
-              //   console.log(res)
-              // }
+              console.log('构建任务表')
               wx.cloud.callFunction({
-                name:'createMissionList',
+                name:'refreshMission',
                 data:{
                   user_id:this.user_id
                 },
@@ -252,80 +253,6 @@ export default {
       setTimeout(()=>{
         this.selectMissionIndex=-1
       },500)
-    },
-    // 抽取任务类型
-    selectMissionType(){
-      // 基础抽取概率
-      const probabilities ={
-        '简单':0.5,
-        "普通":0.3,
-        "困难":0.15,
-        "超难":0.05
-      }
-      const randomValue = Math.random();
-      let selectedGrade;
-      let cumulativeProbability = 0;
-      for (const grade in probabilities) {
-        cumulativeProbability += probabilities[grade];
-        if (randomValue <= cumulativeProbability) {
-          selectedGrade = grade;
-          break;
-        }
-      }
-      return selectedGrade;
-    },
-    // 构建任务表
-    createMissionList() {
-        let res = [];
-        const maxAttempts = 5; // 每次任务生成的最大尝试次数
-
-        for (let i = 1; i < 5; i++) {
-          let generatedTask = null;
-          let attempts = 0;
-
-          while (!generatedTask && attempts < maxAttempts) {
-            attempts++;
-
-            let grade_result = this.selectMissionType();
-            /* 筛选该类型的任务 */
-            let resultArr = this.taskList.filter(item => item.task_grade === grade_result);
-
-            if (resultArr.length === 0) {
-              console.warn(`未找到任务类型为 ${grade_result} 的任务，重新尝试`);
-              continue; // 如果筛选结果为空，重新尝试
-            }
-
-            let randomIndex = Math.floor(Math.random() * resultArr.length);
-
-            // 判断生成的任务是否已经存在于列表中
-            if (res.some(task => task.task_id === resultArr[randomIndex]._id)) {
-              console.warn(`任务 ${resultArr[randomIndex]._id} 已存在，重新尝试`);
-              continue; // 如果任务重复，重新尝试
-            }
-
-            // 成功生成任务
-            generatedTask = {
-              finish_time: null,
-              complete_type: 1, // 完成状态 1未完成 2已完成 3已放弃
-              npc_id: null,
-              score: resultArr[randomIndex].score,
-              task_id: resultArr[randomIndex]._id,
-              task_info: resultArr[randomIndex],
-              user_id: this.user_id,
-              user_info: this.userInfo,
-              create_time: new Date().getTime(),
-            };
-          }
-
-          if (!generatedTask) {
-            console.error(`无法生成任务类型为 ${grade_result} 的任务`);
-            continue; // 如果超过最大尝试次数仍未成功生成，跳过本次任务
-          }
-
-          res.push(generatedTask);
-        }
-
-        return res;
     },
 
     async refreshMission(){
