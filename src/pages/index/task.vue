@@ -119,8 +119,7 @@ export default {
           const completeMissionCount=snapshot.docs.filter(item => item.complete_type === 4).length
           if(completeMissionCount===4){
             this.loading=true
-            const res = await this.refreshMission()
-            console.log(res)
+            this.refreshMission()
           }
         }
         //
@@ -146,35 +145,35 @@ export default {
       immediate: true,  //刷新加载 立马触发一次handler
       deep: true,  // 可以深度检测到 obj 对象的属性值的变化
       handler(o,v){
-        return new Promise(async resolve =>{
           console.log(o+'111111111111111111111111111111111')
           // 活动开始构建任务表
           if(this.getActivityType==='start'&&this.isLogin){
             this.loading=true
             console.log('检查是否生成了任务')
-            const checkMissionListRes = await db.collection('user-mission-2025').where({
+            db.collection('user-mission-2025').where({
               user_id:db.command.eq(this.user_id),
               // 未完成数量不为零即有任务表
               complete_type:db.command.eq(1),
-            }).get()
-            console.log(checkMissionListRes)
-            if(checkMissionListRes.data.length===0){
-              console.log('构建任务表')
-              wx.cloud.callFunction({
-                name:'refreshMission',
-                data:{
-                  user_id:this.user_id
-                },
-                success:res=>{
-                  console.log(res)
-                  this.$store.commit('updateMissionList',res.missionList)
-                  this.loading=false
-                }
-              })
+            }).get().then(res=>{
+              console.log(res)
+              if(res.data.length===0){
+                console.log('构建任务表')
+                // wx.cloud.callFunction({
+                //   name:'refreshMission',
+                //   data:{
+                //     user_id:this.user_id
+                //   },
+                //   success:res=>{
+                //     console.log(res)
+                //     this.$store.commit('updateMissionList',res.missionList)
+                //     this.loading=false
+                //   }
+                // })
+                this.refreshMission('create')
+              }
+            })
 
-            }
           }
-        } )
 
 
       }
@@ -255,24 +254,72 @@ export default {
       },500)
     },
 
-    async refreshMission(){
-      this.loading=true;
+    async refreshMission(type) {
+      this.loading = true;
       uni.removeStorageSync('first_fresh')
-      try{
-        const refreshRes = await wx.cloud.callFunction({
-          name: 'refreshMission',
+      try {
+        // wx.cloud.callFunction({
+        //   name: 'refreshMission',
+        //   data: {
+        //     user_id: this.user_id
+        //   }
+        // }).finally(e=>{
+        //   setTimeout(()=>{
+        //     this.loading=false;
+        //   },1000)
+        // })
+
+        if(type==='create'){
+
+        }
+        else{
+          //  放弃列表中未完成的任务 completetype状态1的标记为状态3  状态4的标记状态2
+          const abandonMissionRes = db.collection('user-mission-2025').where({
+            user_id: _.eq(this.user_id),
+            complete_type: _.eq(1)
+          }).update({
+            data: {
+              complete_type: 3,
+              finish_time: new Date().getTime()
+            }
+          })
+          const abandonMissionRes2 = db.collection('user-mission-2025').where({
+            user_id: _.eq(this.user_id),
+            complete_type: _.eq(4)
+          }).update({
+            data: {
+              complete_type: 2,
+              finish_time: new Date().getTime()
+            }
+          })
+          await Promise.all([abandonMissionRes, abandonMissionRes2]).then(res => {
+            console.log(res)
+            if (res.every(item => item.errMsg.includes('ok'))) {
+                // db.cloud.callFunction({
+                //   name: 'createMissionList',
+                //   data: {
+                //     user_id: this.user_id,
+                //   }
+                // }).then(res => {
+                //   console.log(res)
+                // })
+            }
+          })
+        }
+        //  变更档案的可刷新状态
+        const checkRes = await db.collection('user-activity-2025').where({
+          user_id: _.eq(this.user_id)
+        }).update({
           data: {
-            user_id: this.user_id
+            hasMissionRefresh: 0
           }
-        }).finally(e=>{
-          setTimeout(()=>{
-            this.loading=false;
-          },1000)
         })
-        console.log(refreshRes)
-      }catch (e) {
+        console.log(checkRes)
+
+
+
+      } catch (e) {
         // uni.$u.toast('变更旧的任务状态出现问题')
-        return
       }
 
       // const newMissionList=this.createMissionList

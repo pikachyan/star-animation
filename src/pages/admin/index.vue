@@ -93,6 +93,7 @@ export default {
                         uni.$u.toast('任务验证成功')
                       }
                     }).catch(e=>{
+                      console.log(e)
                       uni.$u.toast('任务验证异常')
                     })
                   }else{
@@ -104,7 +105,7 @@ export default {
                       }
                     }).then(res=>{
                       console.log(res)
-                      if(res.stats.updated==1){
+                      if(res.result.stats.updated==1){
                         uni.$u.toast('礼品已核销')
                       }
                     }).catch(e=>{
