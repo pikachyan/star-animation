@@ -31,8 +31,8 @@
           </view>
         </view>
 
-        <u-cell-group :border="false" :customStyle="cellStyle">
-          <u-cell @click="toPage(1)" clickable icon="setting-fill" title="个人信息"></u-cell>
+        <u-cell-group v-if="role!==4" :border="false" :customStyle="cellStyle">
+<!--          <u-cell @click="toPage(1)" clickable icon="setting-fill" title="个人信息"></u-cell>-->
           <u-cell @click="toPage(2)" clickable :border="false" icon="integral-fill" title="星浔后台"></u-cell>
         </u-cell-group>
         <view @click="showUserQrcode=!showUserQrcode" class=" iconfont icon-erweima" style="width:100%;text-align: center;margin: 10px 0; font-size: 15px;color: #a3a3a3">显示用户二维码</view>

@@ -10,7 +10,7 @@
         寻找对应的NPC进行任务，NPC扫码确认即可完成任务
         任务完成可获取等级，完成4个任务即可刷新一批任务
       </text>
-      <view style="position: relative;">
+      <view style="position: relative;height: calc(640rpx + 48px)">
         <view
             class="item"
             :class="{'animate':loading,'item_loading':loading}"
@@ -35,15 +35,16 @@
         </text>
         <view>
           <u-button
-              @click="refreshMission"
+              @click="onRefresh"
               throttleTime="2000"
-              :disabled="userActivityFile.hasMissionRefresh==0"
+              :disabled="userActivityFile.hasMissionRefresh!==1"
               text="刷新"
               size="mini"
-              :type="userActivityFile.hasMissionRefresh==0?'info':'warning'"
+              type="warning"
           ></u-button>
         </view>
       </view>
+      <view style="height: 90px"></view>
     </template>
     <view class="end-box" v-else>
       <text style="color:#fff;font-family: alm;margin-bottom: 30px;font-size: 100rpx">活动结束了</text>
@@ -83,6 +84,7 @@ const db=wx.cloud.database();
 const _=db.command;
 import weappQRcode from "@/utils/weapp.qrcode.esm";
 import {mapGetters, mapState} from "vuex";
+import {addMission} from "@/api/activityApi";
 export default {
   components: { UserGradeTag},
   created() {
@@ -91,48 +93,7 @@ export default {
     //   url:'/pages/admin/index'
     // })
     // 获取任务表与处理结算
-    this.userMissionHandler= db.collection('user-mission-2025').where({
-      // 任务完成情况 1未完成2已完成3已结算
-      complete_type:db.command.eq(1).or(db.command.eq(4)),
-      user_id: db.command.eq(this.user_id),
-    }).watch({
-      onChange:async snapshot => {
-        console.log('用户任务表变化', snapshot)
-        // 在这里处理任务完成
-        if (snapshot.type !== 'init') {
-          uni.$u.toast('等级+' + snapshot.docChanges[0].doc.score)
-          // 处理首次刷新
-          if (!uni.getStorageSync('first_fresh')){
-            uni.setStorageSync('first_fresh', true)
-            try {
-              const refreshUpdateRes = await db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
-                data:{
-                  hasMissionRefresh:1
-                }
-              })
-              console.log(refreshUpdateRes)
-            } catch (e) {
-              console.log('更改可刷新状态出问题'+e)
-            }
-          }
-          // 处理本批任务完成
-          const completeMissionCount=snapshot.docs.filter(item => item.complete_type === 4).length
-          if(completeMissionCount===4){
-            this.loading=true
-            this.refreshMission()
-          }
-        }
-        //
-        this.$store.commit('updateMissionList', snapshot.docs)
-        this.closeDialog()
-        setTimeout(()=>{
-          this.loading=false
-        },1000)
-      },
-      onError: err=> {
-        console.error('用户任务表变化监听出错', err)
-      }
-    })
+
   },
   mounted() {
   },
@@ -157,22 +118,64 @@ export default {
             }).get().then(res=>{
               console.log(res)
               if(res.data.length===0){
-                console.log('构建任务表')
-                // wx.cloud.callFunction({
-                //   name:'refreshMission',
-                //   data:{
-                //     user_id:this.user_id
-                //   },
-                //   success:res=>{
-                //     console.log(res)
-                //     this.$store.commit('updateMissionList',res.missionList)
-                //     this.loading=false
-                //   }
-                // })
                 this.refreshMission('create')
+              }
+              if(!this.userMissionHandler){
+                this.userMissionHandler= db.collection('user-mission-2025').where({
+                  // 任务完成情况 1未完成2已完成3已结算
+                  complete_type:db.command.eq(1).or(db.command.eq(4)),
+                  user_id: db.command.eq(this.user_id),
+                }).watch({
+                  onChange:async snapshot => {
+                    console.log('用户任务表变化', snapshot)
+                    // 在这里处理任务完成
+                    if (snapshot.type !== 'init') {
+                      // uni.$u.toast('等级+' + snapshot.docChanges[0].doc.score)
+                      // 处理任务完成
+                      if(snapshot.docChanges[0].dataType==='update'){
+                        // 完成一个任务给刷新
+                        if (!uni.getStorageSync('first_fresh')){
+                          uni.setStorageSync('first_fresh', true)
+                          try {
+                            db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
+                              data:{
+                                hasMissionRefresh:1
+                              },
+                            }).then(r=>{
+                              console.log(r)
+                            })
+                          } catch (e) {
+                            console.log('更改可刷新状态出问题'+e)
+                          }
+                        }
+                        // 做完四个触发一次更新
+                        const completeMissionCount=snapshot.docs.filter(item => item.complete_type === 4).length
+                        if(completeMissionCount===4){
+                          // 来源是刷新的话要去掉限制刷新的字段
+                          uni.removeStorageSync('first_fresh')
+                          this.loading=true
+                          this.$store.state.missionList=[]
+                          await this.refreshMission()
+                        }
+                      }
+
+                    }
+                    //
+                    this.$store.state.missionList=snapshot.docs
+                    this.closeDialog()
+                    setTimeout(()=>{
+                      this.loading=false
+                    },1000)
+                  },
+                  onError: err=> {
+                    console.error('用户任务表变化监听出错', err)
+                  }
+                })
               }
             })
 
+          }else{
+            this.userMissionHandler.close()
           }
 
 
@@ -256,23 +259,8 @@ export default {
 
     async refreshMission(type) {
       this.loading = true;
-      uni.removeStorageSync('first_fresh')
+      this.$store.state.missionList=[]
       try {
-        // wx.cloud.callFunction({
-        //   name: 'refreshMission',
-        //   data: {
-        //     user_id: this.user_id
-        //   }
-        // }).finally(e=>{
-        //   setTimeout(()=>{
-        //     this.loading=false;
-        //   },1000)
-        // })
-
-        if(type==='create'){
-
-        }
-        else{
           //  放弃列表中未完成的任务 completetype状态1的标记为状态3  状态4的标记状态2
           const abandonMissionRes = db.collection('user-mission-2025').where({
             user_id: _.eq(this.user_id),
@@ -295,17 +283,10 @@ export default {
           await Promise.all([abandonMissionRes, abandonMissionRes2]).then(res => {
             console.log(res)
             if (res.every(item => item.errMsg.includes('ok'))) {
-                // db.cloud.callFunction({
-                //   name: 'createMissionList',
-                //   data: {
-                //     user_id: this.user_id,
-                //   }
-                // }).then(res => {
-                //   console.log(res)
-                // })
+              this.createMission()
             }
           })
-        }
+        this.$forceUpdate()
         //  变更档案的可刷新状态
         const checkRes = await db.collection('user-activity-2025').where({
           user_id: _.eq(this.user_id)
@@ -324,6 +305,73 @@ export default {
 
       // const newMissionList=this.createMissionList
 
+    },
+    createMission(){
+      try{
+        console.log('构建任务表')
+        console.log(this.taskList)
+        // 需要抽的任务数
+        const count=4-this.missionList.length;
+        // 根据用户任务表过滤出未抽取的任务
+        const availableTasks = this.taskList.filter(task => !this.missionList.includes(task.task_id));
+        console.log('availableTasks ',availableTasks )
+        const probabilities ={
+          '简单':0.5,
+          "普通":0.3,
+          "困难":0.15,
+          "超难":0.05
+        }
+
+        // 创建加权任务池
+        const weightedPool = [];
+        availableTasks.forEach((task, index) => {
+          const weight = probabilities[task.task_grade] || 0; // 获取对应 task_grade 的概率
+          const weightCount = Math.round(weight * 100); // 放大概率
+          for (let i = 0; i < weightCount; i++) {
+            weightedPool.push(task);
+          }
+        });
+        // 使用 Set 保证抽取任务不重复
+        console.log("ids",this.missionList.map(task => task._id))
+        const selectedTaskIds = new Set(this.missionList.map(task => task._id).filter(id => id !== undefined))
+        const selectedTasks = [];
+        while (selectedTasks.length < count && weightedPool.length > 0) {
+          const randomIndex = Math.floor(Math.random() * weightedPool.length);
+          const randomTask = weightedPool[randomIndex];
+
+          if (!selectedTaskIds.has(randomTask._id)) {
+            selectedTasks.push(randomTask);
+            selectedTaskIds.add(randomTask._id);
+          }
+        }
+        const updateTaskArr=selectedTasks.map(item=>{
+          return addMission({
+            finish_time:0,
+            complete_type: 1, // 完成状态 1未完成 2真正的已完成 3已放弃 4待结算，在列表中显示已完成
+            npc_id: '',
+            score:  item.score,
+            task_id:  item._id,
+            task_info:  item,
+            user_id: this.user_id,
+            create_time: new Date().getTime(),
+          })
+        })
+        console.log(updateTaskArr)
+        Promise.all(updateTaskArr).then(res=>{
+          console.log(res)
+          this.loading=false
+        }).catch(err=>{
+          console.log('生成任务失败',err)
+          this.loading=false
+        })
+      }catch (e) {
+        console.log(e)
+      }
+
+    },
+    onRefresh(){
+      uni.removeStorageSync('first_fresh')
+      this.refreshMission()
     }
   },
   options: {

@@ -1,5 +1,5 @@
 <template>
-  <view style="box-sizing: border-box;padding: 0 30px;align-items:center;display: flex;flex-direction: column">
+  <view style="box-sizing: border-box;padding: 0 10px;align-items:center;display: flex;flex-direction: column">
     <top-placeholder></top-placeholder>
     <template v-if="!loading">
       <view class="user-box" @click="showUserBox">
@@ -17,7 +17,7 @@
           <user-grade-tag :score="isLogin?userActivityFile.score_total:0"></user-grade-tag>
           <text style="line-height:40px;color:#fff;font-size: 25px;">{{isLogin?'ID:':'Tourist'}}</text>
           <text class="name" style="line-height:40px;color:#fff;font-size: 25px;font-family: alm">
-            {{isLogin?userInfo.name:'游客'}}
+            {{isLogin?userInfo.name:'游客-请登录'}}
           </text>
         </view>
       </view>
@@ -41,6 +41,13 @@
             size="large"
             :text="userActivityFile.getGiftType===1?'已完成兑换':'兑换礼物'"
         ></u-button>
+      </view>
+      <view style="margin-top: 10px;display: flex;justify-content: center">
+        <text style="line-height:18px;color:#FFF;font-size:12px;text-align: center;font-family: alm">
+          前往场地前台寻找NPC
+          我们会根据积分给您兑换相应等级的礼品
+          本场活动您仅可领取一次，核验后完成兑换
+        </text>
       </view>
     </template>
     <u-modal
@@ -168,10 +175,12 @@ button{font-family: alm}
 
 }
 .score-inner{
+  padding: 20px;
+  box-sizing: border-box;
   margin-top: 10px;
   position: relative;
   width: 100%;
-  height: 300rpx;
+  height: 170px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

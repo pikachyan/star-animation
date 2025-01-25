@@ -97,8 +97,10 @@ export default {
                       uni.$u.toast('任务验证异常')
                     })
                   }else{
-                    wx.cloud.database().collection('user_activity_2025').where({
-                      _id:wx.cloud.database().command._eq(r.result)
+                    const db = wx.cloud.database()
+                    const _=db.command
+                    db.collection('user_activity_2025').where({
+                      _id:_.eq(r.result)
                     }).update({
                       data:{
                         getGiftType:1

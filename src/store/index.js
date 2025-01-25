@@ -20,10 +20,10 @@ export default new Vuex.Store({
         activeActivityConfig:null,
         // 用户抽取的任务表
         missionList:[
-            {task_info:{task_name:'',task_grade:''}},
-            {task_info:{task_name:'',task_grade:''}},
-            {task_info:{task_name:'',task_grade:''}},
-            {task_info:{task_name:'',task_grade:''}},
+            // {task_info:{task_name:'',task_grade:''}},
+            // {task_info:{task_name:'',task_grade:''}},
+            // {task_info:{task_name:'',task_grade:''}},
+            // {task_info:{task_name:'',task_grade:''}},
         ],
         // 活动总任务表
         taskList:[],

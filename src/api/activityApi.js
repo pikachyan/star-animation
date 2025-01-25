@@ -14,7 +14,8 @@ export {
     getTaskDetail,
     getOwnMission,
     hasMission,
-    updateMission
+    updateMission,
+    addMission
 }
 function createActivity(data){
     return db.collection('activity').add({
@@ -25,6 +26,13 @@ function createActivity(data){
 // 更新任务的状态
 function updateMission(id,data){
     return db.collection('user-mission-2025').doc(id).update({
+        data:data
+    })
+}
+
+// 添加一个任务
+function addMission(data) {
+    return db.collection('user-mission-2025').add({
         data:data
     })
 }

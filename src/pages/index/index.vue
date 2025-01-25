@@ -19,20 +19,23 @@
             mode="widthFix"
             style="width:100vw"
             :src="notOpenImg1"
-            v-if="activityType==='wait'"></image>
-        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <task v-if="activityType==='start'||activityType==='end'" :mgTop="mgTop"></task>
-        </scroll-view>
+            v-if="!isLogin"></image>
+        <template v-else>
+          <image
+              :lazy-load="false"
+              mode="widthFix"
+              style="width:100vw"
+              :src="notOpenImg2"
+              v-if="activityType==='wait'"></image>
+          <scroll-view v-else :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
+            <task :mgTop="mgTop"></task>
+          </scroll-view>
+        </template>
+
       </swiper-item>
       <swiper-item  >
-        <image
-            :lazy-load="false"
-            mode="widthFix"
-            style="width:100vw"
-            :src="notOpenImg2"
-            v-if="activityType==='wait'"></image>
         <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <story v-if="activityType==='start'||activityType==='end'"></story>
+          <story></story>
         </scroll-view>
 
 
@@ -65,7 +68,7 @@
   export default {
     components: {Story, Contact, Score, Task, UserBox, DynamicBackground, TopPlaceholder},
     computed:{
-      ...mapState(['taskList','pageIndex','activeActivityConfig','activityType'])
+      ...mapState(['isLogin','taskList','pageIndex','activeActivityConfig','activityType'])
     },
 		data() {
 			return {
@@ -91,11 +94,11 @@
       const ratio = uni.getWindowInfo().screenHeight / uni.getWindowInfo().screenWidth;
       if (Math.abs(ratio - 16 / 9) < 0.01) {
         console.log("屏幕比例接近 16:9");
-        this.notOpenImg1='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中01.png'
+        this.notOpenImg1='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/请登录16-9.png'
         this.notOpenImg2='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中02.png'
       } else {
         console.log("屏幕比例为:", ratio);
-        this.notOpenImg1='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中01-19-9.png'
+        this.notOpenImg1='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/请登录19-9.png'
         this.notOpenImg2='cloud://find-star-0gi8dl41091136d1.6669-find-star-0gi8dl41091136d1-1316449395/建设中0219-9.png'
       }
 		},
