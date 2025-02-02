@@ -5,6 +5,9 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
+        // 剧情读到哪一篇
+        storyIndex:-1,
+        storyReading: false,
         activityType:'waiting',
         isLogin:false,
         // 当前页面的ID
@@ -58,6 +61,8 @@ export default new Vuex.Store({
         },
         updateUser(state,data){
             uni.setStorageSync('user_id',data._id)
+            uni.setStorageSync('user_name',data.name)
+            uni.setStorageSync('user_avatar',data.avatarImg)
             state.userInfo=data
             state.user_id=data._id
             state.isLogin=true

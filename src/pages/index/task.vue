@@ -6,11 +6,10 @@
       <u-overlay :show="loading" opacity="0"></u-overlay>
       <text style="line-height:50px;text-align: center;font-family: alm;color: #fff;font-size: 25px"> 任务中心</text>
       <text style="margin-bottom:20px;line-height:18px;text-align: center;font-family: alm;color: #fff;font-size: 14px">
-        点击对应项目查看详情，前往任务对应的区域
-        寻找对应的NPC进行任务，NPC扫码确认即可完成任务
-        任务完成可获取等级，完成4个任务即可刷新一批任务
+        点击对应项目查看详情，前往任务对应区域
+        寻找对应NPC进行任务，NPC扫码确认即可完成任务
       </text>
-      <view style="position: relative;height: calc(640rpx + 48px)">
+      <view style="position: relative;min-height: calc(640rpx + 48px)">
         <view
             class="item"
             :class="{'animate':loading,'item_loading':loading}"
@@ -30,15 +29,15 @@
       </view>
       <view style="padding:0 15px;align-items:center;margin-top:5px;display: flex;justify-content: space-between">
         <text style="font-size:11px;color:#fff;font-family: alm">
-          完成每批任务中任意一个
-          可获得一次刷新列表的机会（不累计）
+          完成任意一个任务
+          获得一次更换任务的机会（不累计）
         </text>
         <view>
           <u-button
               @click="onRefresh"
               throttleTime="2000"
-              :disabled="userActivityFile.hasMissionRefresh!==1"
-              text="刷新"
+              :disabled="userActivityFile.hasMissionRefresh===0"
+              text="更换任务"
               size="mini"
               type="warning"
           ></u-button>
@@ -88,6 +87,7 @@ import {addMission} from "@/api/activityApi";
 export default {
   components: { UserGradeTag},
   created() {
+
     this.marginTop=uni.getWindowInfo().statusBarHeight
     // uni.navigateTo({
     //   url:'/pages/admin/index'
@@ -105,20 +105,20 @@ export default {
     _activityType:{
       immediate: true,  //刷新加载 立马触发一次handler
       deep: true,  // 可以深度检测到 obj 对象的属性值的变化
-      handler(o,v){
+      async handler(o,v){
           console.log(o+'111111111111111111111111111111111')
           // 活动开始构建任务表
-          if(this.getActivityType==='start'&&this.isLogin){
+          if(this.activityType==='start'&&this.isLogin){
             this.loading=true
             console.log('检查是否生成了任务')
-            db.collection('user-mission-2025').where({
+            await db.collection('user-mission-2025').where({
               user_id:db.command.eq(this.user_id),
               // 未完成数量不为零即有任务表
               complete_type:db.command.eq(1),
             }).get().then(res=>{
               console.log(res)
               if(res.data.length===0){
-                this.refreshMission('create')
+                this.createMission()
               }
               if(!this.userMissionHandler){
                 this.userMissionHandler= db.collection('user-mission-2025').where({
@@ -134,34 +134,38 @@ export default {
                       // 处理任务完成
                       if(snapshot.docChanges[0].dataType==='update'){
                         // 完成一个任务给刷新
-                        if (!uni.getStorageSync('first_fresh')){
-                          uni.setStorageSync('first_fresh', true)
-                          try {
-                            db.collection('user-activity-2025').doc(this.userActivityFile._id).update({
-                              data:{
-                                hasMissionRefresh:1
-                              },
-                            }).then(r=>{
-                              console.log(r)
-                            })
-                          } catch (e) {
-                            console.log('更改可刷新状态出问题'+e)
+                        console.log('给一次刷新')
+                        await db.collection('user-activity-2025').where({
+                          user_id: _.eq(this.user_id),
+                        }).update({
+                          data:{
+                            hasMissionRefresh:1
                           }
+                        })
+                        // 云端任务完成后...
+                        let completeMissionIndex=this.$store.state.missionList.findIndex(item=>item._id===snapshot.docChanges[0].docId)
+                        console.log(completeMissionIndex)
+                        if(completeMissionIndex!==-1){
+                          this.$store.state.missionList[completeMissionIndex].complete_type=4
                         }
-                        // 做完四个触发一次更新
-                        const completeMissionCount=snapshot.docs.filter(item => item.complete_type === 4).length
-                        if(completeMissionCount===4){
-                          // 来源是刷新的话要去掉限制刷新的字段
-                          uni.removeStorageSync('first_fresh')
-                          this.loading=true
-                          this.$store.state.missionList=[]
+                        if(this.$store.state.missionList.length===4&&this.$store.state.missionList.every(item=>item.complete_type===4)){
+                          console.log('所有任务已完成')
                           await this.refreshMission()
                         }
                       }
-
+                    }else{
+                      // 初始化
+                      this.$store.state.missionList=snapshot.docs
                     }
+                    // this.$store.state.missionList=snapshot.docs
                     //
-                    this.$store.state.missionList=snapshot.docs
+                    // 做完四个触发一次更新
+                    // const completeMissionCount=snapshot.docs.filter(item => item.complete_type === 4).length
+                    // if(completeMissionCount===4){
+                    //   this.loading=true
+                    //   this.$store.state.missionList=[]
+                    //   await this.refreshMission()
+                    // }
                     this.closeDialog()
                     setTimeout(()=>{
                       this.loading=false
@@ -236,6 +240,16 @@ export default {
   },
 
   methods: {
+    getMissionList(){
+      db.collection('user-mission-2025').where({
+        // 任务完成情况 1未完成2已完成3已结算
+        complete_type:db.command.eq(1).or(db.command.eq(4)),
+        user_id: db.command.eq(this.user_id),
+      }).get().then(res=>{
+        this.$store.state.missionList=res.data;
+      })
+
+    },
     gradeColor(grade){
       return {
         '简单':'#7ad2ff',
@@ -257,6 +271,7 @@ export default {
       },500)
     },
 
+    // type  传值表示是刷新按钮触发的
     async refreshMission(type) {
       this.loading = true;
       this.$store.state.missionList=[]
@@ -286,16 +301,33 @@ export default {
               this.createMission()
             }
           })
+        // const taskList=this.missionList.map(item=>{
+        //   return db.collection('user-mission-2025').doc(item._id).update({
+        //       data: {
+        //         complete_type: item.complete_type===4?2:3,
+        //         finish_time: new Date().getTime()
+        //       }
+        //     })
+        // })
+        // await Promise.all(taskList).then(res => {
+        //   console.log(res)
+        //   if (res.every(item => item.errMsg.includes('ok'))) {
+        //     this.createMission()
+        //   }
+        // })
         this.$forceUpdate()
-        //  变更档案的可刷新状态
-        const checkRes = await db.collection('user-activity-2025').where({
-          user_id: _.eq(this.user_id)
-        }).update({
-          data: {
-            hasMissionRefresh: 0
-          }
-        })
-        console.log(checkRes)
+        if(type){
+          //  变更档案的可刷新状态
+          const checkRes = await db.collection('user-activity-2025').where({
+            user_id: _.eq(this.user_id)
+          }).update({
+            data: {
+              hasMissionRefresh: 0
+            }
+          })
+          console.log(checkRes)
+        }
+
 
 
 
@@ -306,14 +338,19 @@ export default {
       // const newMissionList=this.createMissionList
 
     },
-    createMission(){
+    async createMission(){
       try{
+        const missionListRes=await db.collection('user-mission-2025').where({
+          user_id: _.eq(this.user_id),
+          complete_type: _.eq(1).or(_.eq(4))
+        }).get()
         console.log('构建任务表')
         console.log(this.taskList)
         // 需要抽的任务数
-        const count=4-this.missionList.length;
+        console.log('missionListRes',missionListRes)
+        const count=4-missionListRes.data.length;
         // 根据用户任务表过滤出未抽取的任务
-        const availableTasks = this.taskList.filter(task => !this.missionList.includes(task.task_id));
+        const availableTasks = this.taskList.filter(task => !missionListRes.data.includes(task.task_id));
         console.log('availableTasks ',availableTasks )
         const probabilities ={
           '简单':0.5,
@@ -332,8 +369,8 @@ export default {
           }
         });
         // 使用 Set 保证抽取任务不重复
-        console.log("ids",this.missionList.map(task => task._id))
-        const selectedTaskIds = new Set(this.missionList.map(task => task._id).filter(id => id !== undefined))
+        console.log("ids",missionListRes.data.map(task => task._id))
+        const selectedTaskIds = new Set(missionListRes.data.map(task => task._id).filter(id => id !== undefined))
         const selectedTasks = [];
         while (selectedTasks.length < count && weightedPool.length > 0) {
           const randomIndex = Math.floor(Math.random() * weightedPool.length);
@@ -359,9 +396,11 @@ export default {
         console.log(updateTaskArr)
         Promise.all(updateTaskArr).then(res=>{
           console.log(res)
+          this.getMissionList()
           this.loading=false
         }).catch(err=>{
           console.log('生成任务失败',err)
+          this.getMissionList()
           this.loading=false
         })
       }catch (e) {
@@ -370,8 +409,22 @@ export default {
 
     },
     onRefresh(){
-      uni.removeStorageSync('first_fresh')
-      this.refreshMission()
+      db.collection('user-activity-2025').where({
+        user_id: _.eq(this.user_id),
+      }).update({
+        data:{
+          hasMissionRefresh:0
+        }
+      }).then(res=>{
+        console.log(res)
+        if(res.stats.updated===1){
+          uni.removeStorageSync('first_fresh')
+          this.refreshMission(11111)
+        }
+      }).catch(e=>{
+        uni.$u.toast('哎呀，刷新出现了问题')
+      })
+
     }
   },
   options: {

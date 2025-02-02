@@ -11,7 +11,7 @@ export default {
     this.height=uni.getMenuButtonBoundingClientRect().bottom+5+'px'
     const {safeAreaInsets} =uni.getWindowInfo()
     console.log(uni.getWindowInfo())
-    this.pdTop=safeAreaInsets.top+'px'
+    this.pdTop=uni.getMenuButtonBoundingClientRect().top+'px'
   },
   mounted() {
 

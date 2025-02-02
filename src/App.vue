@@ -1,5 +1,6 @@
 <script>
 	import {mapState} from "vuex";
+  let userInfoHandler,userActivityFileHandler
   wx.cloud.init({
     env:'find-star-0gi8dl41091136d1',
     traceUser: true,
@@ -68,8 +69,8 @@
       '$store.state.isLogin':{
         deep: true,
         handler(){
-          let userInfoHandler,userActivityFileHandler
-          if(this.isLogin){
+          console.log('app 登录状态',this.$store.state.isLogin)
+          if(this.$store.state.isLogin){
             // 监听用户信息
             userInfoHandler = db.collection('user')
                 .doc(uni.getStorageSync('user_id'))
@@ -84,12 +85,12 @@
                 })
             //   检查用户的活动配置 如无则创建
             db.collection('user-activity-2025').where({
-              user_id: _.eq(this.user_id)
+              user_id: _.eq(uni.getStorageSync('user_id'))
             }).get().then(res=>{
               console.log(res)
               if(res.data.length===0){
                 let params={
-                  user_id:this.user_id,
+                  user_id:this.$store.state.user_id,
                   // 是否已领取礼物
                   getGiftType:0,
                   // 有无刷新次数
@@ -107,8 +108,8 @@
                   }
                 })
               }else{
-                userActivityFileHandler=db.collection('user-activity-2025').where({
-                  user_id:_.eq(this.user_id)
+                userActivityFileHandler= db.collection('user-activity-2025').where({
+                  user_id:_.eq(this.$store.state.user_id)
                 }).watch({
                   onChange:snapshot=>{
                     console.log('用户活动档案信息变化', snapshot)
@@ -123,7 +124,9 @@
           }else{
             userActivityFileHandler.close()
             userInfoHandler.close()
-            this.$store.commit('logOut')
+            userActivityFileHandler=null
+            userInfoHandler=null
+            // this.$store.commit('logOut')
           }
 
         }

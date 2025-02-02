@@ -1,60 +1,65 @@
 <template>
 	<view class="content">
 <!--    <top-placeholder></top-placeholder>-->
-
-    <swiper
-        easing-function="easeInOutCubic"
-        skip-hidden-item-layout
-        @change="pageChange"
-        :current="pageIndex"
-        style="height: 100vh">
-      <swiper-item  >
-        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <score :mgTop="mgTop"></score>
-        </scroll-view>
-      </swiper-item>
-      <swiper-item >
-        <image
-            :lazy-load="false"
-            mode="widthFix"
-            style="width:100vw"
-            :src="notOpenImg1"
-            v-if="!isLogin"></image>
-        <template v-else>
+    <u-transition :show="!storyReading">
+      <swiper
+          v-if="!storyReading"
+          easing-function="easeInOutCubic"
+          skip-hidden-item-layout
+          @change="pageChange"
+          :current="pageIndex"
+          style="height: 100vh">
+        <swiper-item  >
+          <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
+            <score :mgTop="mgTop"></score>
+          </scroll-view>
+        </swiper-item>
+        <swiper-item >
           <image
               :lazy-load="false"
               mode="widthFix"
               style="width:100vw"
-              :src="notOpenImg2"
-              v-if="activityType==='wait'"></image>
-          <scroll-view v-else :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-            <task :mgTop="mgTop"></task>
+              :src="notOpenImg1"
+              v-if="!isLogin"></image>
+          <template v-else>
+            <image
+                :lazy-load="false"
+                mode="widthFix"
+                style="width:100vw"
+                :src="notOpenImg2"
+                v-if="activityType==='wait'"></image>
+            <scroll-view v-else :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
+              <task :mgTop="mgTop"></task>
+            </scroll-view>
+          </template>
+
+        </swiper-item>
+        <swiper-item  >
+          <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
+            <story></story>
           </scroll-view>
-        </template>
-
-      </swiper-item>
-      <swiper-item  >
-        <scroll-view :style="{height:scrollHeight+'px'}" scroll-y class="page-item">
-          <story></story>
-        </scroll-view>
 
 
-      </swiper-item>
-      <swiper-item  >
-        <scroll-view :style="{height:scrollHeight+'px'}" class="page-item">
-          <contact :mgTop="mgTop"></contact>
-        </scroll-view>
-      </swiper-item>
-    </swiper>
-
+        </swiper-item>
+        <swiper-item  >
+          <scroll-view :style="{height:scrollHeight+'px'}" class="page-item">
+            <contact :mgTop="mgTop"></contact>
+          </scroll-view>
+        </swiper-item>
+      </swiper>
+      <cus-tabbar id="custabbar"></cus-tabbar>
+    </u-transition>
 
     <dynamic-background></dynamic-background>
-    <cus-tabbar id="custabbar"></cus-tabbar>
+    <communicate v-if="storyReading"></communicate>
     <user-box></user-box>
 	</view>
 </template>
 
 <script>
+import login from "@/pages/login/index.vue";
+
+let userInfoHandler,userActivityFileHandler
 	import TopPlaceholder from "@/components/top-placeholder.vue";
   import DynamicBackground from "@/components/dynamic-background.vue";
   import UserBox from "@/components/user-box.vue";
@@ -63,12 +68,13 @@
   import Score from "@/pages/index/score.vue";
   import Contact from "@/pages/index/contact.vue";
   import Story from "@/pages/index/story.vue";
+  import Communicate from "@/pages/index/communicate.vue";
   const db=wx.cloud.database()
   const _=db.command
   export default {
-    components: {Story, Contact, Score, Task, UserBox, DynamicBackground, TopPlaceholder},
+    components: {Communicate, Story, Contact, Score, Task, UserBox, DynamicBackground, TopPlaceholder},
     computed:{
-      ...mapState(['isLogin','taskList','pageIndex','activeActivityConfig','activityType'])
+      ...mapState(['storyReading','isLogin','taskList','pageIndex','activeActivityConfig','activityType'])
     },
 		data() {
 			return {
@@ -90,6 +96,7 @@
           }
         })
       }
+
       // 计算屏幕比例
       const ratio = uni.getWindowInfo().screenHeight / uni.getWindowInfo().screenWidth;
       if (Math.abs(ratio - 16 / 9) < 0.01) {
@@ -106,16 +113,16 @@
       // 以定时器监听活动开始结束
       currentTime(n,o){
         let {startTime,endTime} = this.activeActivityConfig
-        if(o>=startTime){
+        if(n>=startTime&&n<endTime){
           // 活动开始
           this.$store.state.activityType='start'
-
-
-        }else if(o>=endTime){
+        }else if(n>=endTime){
           //   活动结束
           this.$store.state.activityType='end'
           //   活动结束后移除第一次刷新的缓存
           uni.removeStorageSync('first_fresh')
+          // uni.removeStorageSync('story_is_read_arr_2025')
+          clearInterval(this.interval);
         }else {
           // 活动前
           this.$store.state.activityType='wait'

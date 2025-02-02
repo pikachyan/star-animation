@@ -4,10 +4,10 @@
     <template >
       <u-grid
           col="3"
-          @click="click"
+
       >
         <template  v-for="(item,index) in menuList">
-          <u-grid-item v-if="item.permission.includes(userInfo.permission)" :key="index">
+          <u-grid-item  @click="click(item.type,index)" v-if="item.permission.includes(userInfo.permission)" :key="index">
             <u-icon
                 :customStyle="{paddingTop:40+'rpx'}"
                 :name="item.icon"
@@ -39,13 +39,15 @@ export default {
           name:'活动配置',
           icon:'setting',
           path:'/pages/admin/activity-config',
-          permission:[1,2]
+          permission:[1,2],
+          type:'url'
         },
         {
           name:'管理员列表',
           icon:'file-text',
           path:'/pages/admin/admin-list',
-          permission:[1,2]
+          permission:[1,2],
+          type:'url'
         },
         {
           name:'任务验证',
@@ -64,9 +66,8 @@ export default {
   },
 
   methods: {
-    click(i){
-      console.log(i)
-      if(!this.menuList[i].type){
+    click(type,i){
+      if(type==='url'){
         uni.navigateTo({
           url:this.menuList[i].path
         })
@@ -77,10 +78,10 @@ export default {
           success:r=>{
             uni.showModal({
               title:'提示',
-              content:this.menuList[i].type==='func'?'是否确认任务已完成':'是否兑换用户奖励',
+              content:type==='func'?'是否确认任务已完成':'是否兑换用户奖励',
               success:d=>{
                 if(d.confirm){
-                  if(this.menuList[i].type==='func'){
+                  if(type==='func'){
                     wx.cloud.callFunction({
                       name:'settlementMission',
                       data:{
@@ -89,17 +90,17 @@ export default {
                       }
                     }).then(res=>{
                       console.log(res)
-                      if(res.stats.updated==1){
+                      if(res.result.stats.updated==1){
                         uni.$u.toast('任务验证成功')
                       }
                     }).catch(e=>{
-                      console.log(e)
+                      console.log('异常区',e)
                       uni.$u.toast('任务验证异常')
                     })
                   }else{
                     const db = wx.cloud.database()
                     const _=db.command
-                    db.collection('user_activity_2025').where({
+                    db.collection('user-activity-2025').where({
                       _id:_.eq(r.result)
                     }).update({
                       data:{
@@ -107,10 +108,11 @@ export default {
                       }
                     }).then(res=>{
                       console.log(res)
-                      if(res.result.stats.updated==1){
+                      if(res.stats.updated==1){
                         uni.$u.toast('礼品已核销')
                       }
                     }).catch(e=>{
+                      console.log(e)
                       uni.$u.toast('更新礼品核销状态异常')
                     })
                   }

@@ -92,7 +92,7 @@
         :showCancelButton="false"
         @close="showTakeUser=false"
         closeOnClickOverlay
-        @confirm="takeUser"
+        @confirm="takeUser(id_value)"
     >
       <u-input v-model="id_value" placeholder="输入用户id" border="bottom"></u-input>
     </u-modal>
@@ -201,11 +201,11 @@ export default {
   },
 
   methods: {
-    takeUser(){
-      getUserInfo(this.id_value).then(res=>{
+    takeUser(id){
+      getUserInfo(id).then(res=>{
         console.log(res)
         this.$store.commit('updateUser',res.data)
-        uni.$u.toast('取回角色成功')
+        // uni.$u.toast('取回角色成功')
         uni.reLaunch({
           url:'/pages/index/index'
         })
@@ -234,16 +234,10 @@ export default {
       createUser(this.userName,this.img).then(res=>{
         console.log('创建角色',res)
         if(res.errMsg.includes('add:ok')){
-          this.$store.commit('updateUser',{_id:res._id})
           uni.hideLoading()
           uni.$u.toast('创建角色成功')
           uni.setStorageSync('skip_login_2025',1)
-          setTimeout(()=>{
-            uni.reLaunch({
-              url:'/pages/index/index'
-            })
-          },1000)
-
+          this.takeUser(res._id)
         }else{
           uni.$u.toast('创建角色异常')
         }
